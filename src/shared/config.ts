@@ -1,5 +1,4 @@
-import { plainToInstance } from 'class-transformer'
-import { validateSync } from 'class-validator'
+import z from 'zod'
 import { config } from 'dotenv'
 import fs from 'fs'
 import path from 'path'
@@ -13,26 +12,21 @@ if (!fs.existsSync(path.resolve('.env'))) {
   process.exit(1)
 }
 
-class ConfigSchema {
-  DATABASE_URL!: string
-  ACCESS_TOKEN_SECRET!: string
-  REFRESH_TOKEN_SECRET!: string
-  ACCESS_TOKEN_EXPIRES_IN!: string
-  REFRESH_TOKEN_EXPIRES_IN!: string
-}
-
-const configServer = plainToInstance(ConfigSchema, process.env, {
-  enableCircularCheck: true,
+const ConfigSchema = z.object({
+  DATABASE_URL: z.string(),
+  ACCESS_TOKEN_SECRET: z.string(),
+  REFRESH_TOKEN_SECRET: z.string(),
+  ACCESS_TOKEN_EXPIRES_IN: z.string(),
+  REFRESH_TOKEN_EXPIRES_IN: z.string(),
+  SECRET_KEY: z.string(),
 })
-const errors = validateSync(configServer)
-if (errors.length > 0) {
+
+const configServer = ConfigSchema.parse(process.env)
+
+if (!configServer) {
   console.log('Invalid environment variables')
-  const errorMessages = errors.map((err) => ({
-    property: err.property,
-    message: err.constraints,
-    value: err.value,
-  }))
-  throw new Error(JSON.stringify(errorMessages))
+  throw new Error('Invalid environment variables')
+  process.exit(1)
 }
 
 const envConfig = configServer

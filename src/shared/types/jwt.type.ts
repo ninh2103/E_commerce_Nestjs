@@ -1,0 +1,6 @@
+export interface TokenPayload {
+  id: number
+  email: string
+  role: string
+  status: string
+}
