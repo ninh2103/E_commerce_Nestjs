@@ -14,3 +14,19 @@ export const conditionGuard = {
 } as const
 
 export type ConditionGuard = (typeof conditionGuard)[keyof typeof conditionGuard]
+
+export const UserStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  BLOCKED: 'BLOCKED',
+} as const
+
+export const UserRole = {
+  ADMIN: 'ADMIN',
+  USER: 'USER',
+} as const
+
+export const VerificationCodeType = {
+  REGISTER: 'REGISTER',
+  FORGOT_PASSWORD: 'FORGOT_PASSWORD',
+} as const
