@@ -30,3 +30,5 @@ export const VerificationCodeType = {
   REGISTER: 'REGISTER',
   FORGOT_PASSWORD: 'FORGOT_PASSWORD',
 } as const
+
+export type TypeOfVerificationCodeType = (typeof VerificationCodeType)[keyof typeof VerificationCodeType]
