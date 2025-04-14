@@ -16,12 +16,12 @@ const SharedServices = [PrismaService, HashingService, TokenService, SharedRepos
 @Module({
   providers: [
     ...SharedServices,
-    // ApiKeyGuard,
-    // AccessTokenGuard,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthenticationGuard,
-    // },
+    ApiKeyGuard,
+    AccessTokenGuard,
+    {
+      provide: APP_GUARD,
+      useClass: AuthenticationGuard,
+    },
   ],
   exports: SharedServices,
   imports: [JwtModule],

@@ -2,13 +2,14 @@ import { HttpException, Injectable, UnauthorizedException, UnprocessableEntityEx
 import { RoleService } from 'src/routes/auth/role.service'
 import {
   LoginBodyType,
+  LogoutBodyType,
   RefreshTokenBodyType,
   RegisterBodyType,
   RegisterResponseType,
   SendOtpCodeBodyType,
 } from './auth.model'
 import { SharedRepository } from 'src/shared/repositorys/shared.repo'
-import { genareteCode } from 'src/shared/helpers'
+import { genareteCode, isNotFoundPrismaError } from 'src/shared/helpers'
 import { VerificationCodeType } from 'src/shared/constants/auth.constant'
 import { AccessTokenPayloadCreate } from 'src/shared/types/jwt.type'
 import { EmailService } from 'src/shared/sharedServices/email.service'
@@ -80,7 +81,7 @@ export class AuthService {
     }
 
     const code = genareteCode()
-    const verifyCode = await this.authRepository.findUniqueUserIncludeRole({
+    await this.authRepository.findUniqueUserIncludeRole({
       email: body.email,
     })
     const { error } = await this.emailService.sendEmail({
@@ -98,7 +99,6 @@ export class AuthService {
 
     return {
       message: 'OTP code sent to email',
-      verifyCode,
     }
   }
   async login(body: LoginBodyType & { userAgent: string; ip: string }) {
@@ -198,6 +198,29 @@ export class AuthService {
         throw error
       }
       throw new UnprocessableEntityException([{ message: 'Invalid refresh token', path: ['refreshToken'] }])
+    }
+  }
+  async logout(body: LogoutBodyType) {
+    const { refreshToken } = body
+    try {
+      await this.tokenService.verifyRefreshToken(refreshToken)
+
+      const deletedRefreshToken = await this.authRepository.deleteRefreshToken({
+        token: refreshToken,
+      })
+
+      await this.authRepository.updateDevice(deletedRefreshToken.deviceId, {
+        isActive: false,
+      })
+
+      return {
+        message: 'Logout successfully',
+      }
+    } catch (error) {
+      if (isNotFoundPrismaError(error)) {
+        throw new UnprocessableEntityException([{ message: 'Invalid refresh token', path: ['refreshToken'] }])
+      }
+      throw new UnauthorizedException([{ message: 'Invalid refresh token', path: ['refreshToken'] }])
     }
   }
 }
