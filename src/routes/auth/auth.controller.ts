@@ -6,6 +6,7 @@ import {
   RefreshTokenBodyDto,
   RegisterBodyDto,
   SendOtpCodeBodyDto,
+  ForgotPasswordBodyDto,
 } from 'src/routes/auth/auth.dto'
 import { ZodSerializerDto } from 'nestjs-zod'
 import { userAgent } from 'src/shared/decorators/agent.decotator'
@@ -48,5 +49,12 @@ export class AuthController {
   @ZodSerializerDto(MessageResponseDto)
   logout(@Body() body: LogoutBodyDto) {
     return this.authService.logout(body)
+  }
+
+  @Post('forgot-password')
+  @IsPublic()
+  @ZodSerializerDto(ForgotPasswordBodyDto)
+  forgotPassword(@Body() body: ForgotPasswordBodyDto) {
+    return this.authService.forgotPassword(body)
   }
 }

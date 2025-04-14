@@ -1,6 +1,7 @@
 import { HttpException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
 import { RoleService } from 'src/routes/auth/role.service'
 import {
+  ForgotPasswordBodyType,
   LoginBodyType,
   LogoutBodyType,
   RefreshTokenBodyType,
@@ -9,13 +10,25 @@ import {
   SendOtpCodeBodyType,
 } from './auth.model'
 import { SharedRepository } from 'src/shared/repositorys/shared.repo'
-import { genareteCode, isNotFoundPrismaError } from 'src/shared/helpers'
-import { VerificationCodeType } from 'src/shared/constants/auth.constant'
+import { genareteCode, isNotFoundPrismaError, isUniqueContraintPrismaError } from 'src/shared/helpers'
+import { TypeOfVerificationCodeType, UserStatus, VerificationCodeType } from 'src/shared/constants/auth.constant'
 import { AccessTokenPayloadCreate } from 'src/shared/types/jwt.type'
 import { EmailService } from 'src/shared/sharedServices/email.service'
 import { TokenService } from 'src/shared/sharedServices/token.service'
 import { HashingService } from 'src/shared/sharedServices/hashing.service'
 import { AuthRepository } from 'src/routes/auth/auth.repo'
+import {
+  EmailAlreadyExistsException,
+  EmailNotFoundException,
+  FailedToSendOtpException,
+  InvalidOtpException,
+  InvalidPasswordException,
+  OtpExpiredException,
+  RefreshTokenAlreadyUsedException,
+  UnAuthorizedAccessException,
+} from 'src/routes/auth/error.model'
+import ms from 'ms'
+import { addMilliseconds } from 'date-fns'
 @Injectable()
 export class AuthService {
   constructor(
@@ -27,60 +40,65 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
 
+  async validateVerifyCode({ email, type, code }: { email: string; type: TypeOfVerificationCodeType; code: string }) {
+    const verifyCode = await this.authRepository.findUniqueVerificationCode({
+      email,
+      type,
+      code,
+    })
+    if (!verifyCode) {
+      throw InvalidOtpException
+    }
+    if (verifyCode.expiresAt < new Date()) {
+      throw OtpExpiredException
+    }
+    return verifyCode
+  }
+
   async register(body: RegisterBodyType): Promise<RegisterResponseType> {
     try {
-      const verifyCode = await this.authRepository.findUniqueVerificationCode({
-        email: body.email,
-        type: VerificationCodeType.REGISTER,
-        code: body.code,
-      })
-      if (!verifyCode) {
-        throw new UnprocessableEntityException([
-          {
-            message: 'Invalid verification code',
-            path: ['code'],
-          },
-        ])
-      }
-      if (verifyCode.expiresAt < new Date()) {
-        throw new UnprocessableEntityException([
-          {
-            message: 'Verification code expired',
-            path: ['code'],
-          },
-        ])
-      }
+      await this.validateVerifyCode({ email: body.email, type: VerificationCodeType.REGISTER, code: body.code })
       const hashPassword = await this.hashingService.hash(body.password)
       const roleId = await this.roleService.getClientRoleId()
-      const user = await this.authRepository.createUser({
-        email: body.email,
-        password: hashPassword,
-        name: body.name,
-        phoneNumber: body.phoneNumber,
-        roleId,
-      })
+
+      const [user] = await Promise.all([
+        this.authRepository.createUser({
+          email: body.email,
+          password: hashPassword,
+          name: body.name,
+          phoneNumber: body.phoneNumber,
+          roleId,
+        }),
+        this.authRepository.deleteVerificationCode({
+          email: body.email,
+          type: VerificationCodeType.REGISTER,
+          code: body.code,
+        }),
+      ])
       return user
     } catch (error) {
-      throw new UnprocessableEntityException([
-        {
-          message: 'Email already exists',
-          path: ['email'],
-        },
-      ])
+      if (isUniqueContraintPrismaError(error)) {
+        throw EmailAlreadyExistsException
+      }
+      throw error
     }
   }
   async sendOtpCode(body: SendOtpCodeBodyType) {
     const user = await this.sharedRepository.findUnique({ email: body.email })
-    if (user) {
-      throw new UnprocessableEntityException([
-        {
-          message: 'Email already exists',
-          path: ['email'],
-        },
-      ])
+    if (body.type === VerificationCodeType.REGISTER && user) {
+      throw EmailAlreadyExistsException
+    }
+    if (body.type === VerificationCodeType.FORGOT_PASSWORD && !user) {
+      throw EmailNotFoundException
     }
 
     const code = genareteCode()
+    await this.authRepository.createVerifyCode({
+      email: body.email,
+      type: body.type,
+      code,
+      expiresAt: addMilliseconds(new Date(), ms('5m')),
+    })
     await this.authRepository.findUniqueUserIncludeRole({
       email: body.email,
     })
@@ -89,12 +107,7 @@ export class AuthService {
       code,
     })
     if (error) {
-      throw new UnprocessableEntityException([
-        {
-          message: 'Failed to send email',
-          path: ['email'],
-        },
-      ])
+      throw FailedToSendOtpException
     }
 
     return {
@@ -104,21 +117,11 @@ export class AuthService {
   async login(body: LoginBodyType & { userAgent: string; ip: string }) {
     const user = await this.authRepository.findUniqueUserIncludeRole({ email: body.email })
     if (!user) {
-      throw new UnprocessableEntityException([
-        {
-          message: 'User not found',
-          path: ['email'],
-        },
-      ])
+      throw EmailNotFoundException
     }
     const isPasswordMatch = await this.hashingService.compare(body.password, user.password)
     if (!isPasswordMatch) {
-      throw new UnprocessableEntityException([
-        {
-          message: 'Invalid password',
-          path: ['password'],
-        },
-      ])
+      throw InvalidPasswordException
     }
     const device = await this.authRepository.createDevice({
       userId: user.id,
@@ -168,7 +171,7 @@ export class AuthService {
         token: refreshToken,
       })
       if (!refreshTokeninDB) {
-        throw new UnauthorizedException([{ message: 'Refresh token not found', path: ['refreshToken'] }])
+        throw RefreshTokenAlreadyUsedException
       }
       const {
         deviceId,
@@ -197,7 +200,7 @@ export class AuthService {
       if (error instanceof HttpException) {
         throw error
       }
-      throw new UnprocessableEntityException([{ message: 'Invalid refresh token', path: ['refreshToken'] }])
+      throw UnAuthorizedAccessException
     }
   }
   async logout(body: LogoutBodyType) {
@@ -218,9 +221,27 @@ export class AuthService {
       }
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
-        throw new UnprocessableEntityException([{ message: 'Invalid refresh token', path: ['refreshToken'] }])
+        throw RefreshTokenAlreadyUsedException
       }
-      throw new UnauthorizedException([{ message: 'Invalid refresh token', path: ['refreshToken'] }])
+      throw UnAuthorizedAccessException
+    }
+  }
+  async forgotPassword(body: ForgotPasswordBodyType) {
+    const { email, code, newPassword, confirmNewPassword } = body
+    const user = await this.authRepository.findUniqueUserIncludeRole({ email })
+    if (!user) {
+      throw EmailNotFoundException
+    }
+    await this.validateVerifyCode({ email, type: VerificationCodeType.FORGOT_PASSWORD, code })
+    const hashPassword = await this.hashingService.hash(newPassword)
+
+    await Promise.all([
+      this.authRepository.updateUser({ id: user.id }, { password: hashPassword }),
+      this.authRepository.deleteVerificationCode({ email, type: VerificationCodeType.FORGOT_PASSWORD, code }),
+    ])
+
+    return {
+      message: 'Password updated successfully',
     }
   }
 }

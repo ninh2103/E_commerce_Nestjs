@@ -6,7 +6,7 @@ import {
   RoleType,
   VerificationCodeType,
 } from 'src/routes/auth/auth.model'
-import { TypeOfVerificationCodeType } from 'src/shared/constants/auth.constant'
+import { TypeOfVerificationCodeType, UserStatus } from 'src/shared/constants/auth.constant'
 import { UserType } from 'src/shared/models/shared-user.model'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 @Injectable()
@@ -89,6 +89,25 @@ export class AuthRepository {
 
   async deleteRefreshToken(uniqueObject: { token: string }): Promise<RefreshTokenType> {
     return await this.prismaService.refreshToken.delete({
+      where: uniqueObject,
+    })
+  }
+  async updateUser(
+    where: { id: number } | { email: string },
+    payload: Partial<Omit<UserType, 'id'>>,
+  ): Promise<UserType> {
+    return await this.prismaService.user.update({
+      where,
+      data: payload,
+    })
+  }
+  async deleteVerificationCode(
+    uniqueObject:
+      | { email: string }
+      | { id: number }
+      | { email: string; type: TypeOfVerificationCodeType; code: string },
+  ): Promise<VerificationCodeType> {
+    return await this.prismaService.verificationCode.delete({
       where: uniqueObject,
     })
   }
