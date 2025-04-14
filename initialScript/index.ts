@@ -1,7 +1,7 @@
 import envConfig from 'src/shared/config'
 import { ROLE_NAME } from 'src/shared/constants/roleName.constant'
-import { HashingService } from 'src/shared/services/hashing.service'
-import { PrismaService } from 'src/shared/services/prisma.service'
+import { HashingService } from 'src/shared/sharedServices/hashing.service'
+import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 
 const prisma = new PrismaService()
 const hashingPassword = new HashingService()

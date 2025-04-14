@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { ROLE_NAME } from 'src/shared/constants/roleName.constant'
-import { PrismaService } from 'src/shared/services/prisma.service'
+import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 
 @Injectable()
 export class RoleService {

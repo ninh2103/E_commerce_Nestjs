@@ -1,8 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common'
 import { Observable } from 'rxjs'
 import { REQUEST_USER_KEY } from 'src/shared/constants/auth.constant'
-import { TokenService } from 'src/shared/services/token.service'
-
+import { TokenService } from '../sharedServices/token.service'
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
   constructor(private readonly jwtService: TokenService) {}

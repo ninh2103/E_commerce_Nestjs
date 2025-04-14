@@ -1,6 +1,4 @@
 import { HttpException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
-import { HashingService } from 'src/shared/services/hashing.service'
-import { AuthRepository } from './auth.repo'
 import { RoleService } from 'src/routes/auth/role.service'
 import {
   LoginBodyType,
@@ -12,9 +10,11 @@ import {
 import { SharedRepository } from 'src/shared/repositorys/shared.repo'
 import { genareteCode } from 'src/shared/helpers'
 import { VerificationCodeType } from 'src/shared/constants/auth.constant'
-import { EmailService } from 'src/shared/services/email.service'
-import { TokenService } from 'src/shared/services/token.service'
 import { AccessTokenPayloadCreate } from 'src/shared/types/jwt.type'
+import { EmailService } from 'src/shared/sharedServices/email.service'
+import { TokenService } from 'src/shared/sharedServices/token.service'
+import { HashingService } from 'src/shared/sharedServices/hashing.service'
+import { AuthRepository } from 'src/routes/auth/auth.repo'
 @Injectable()
 export class AuthService {
   constructor(
