@@ -1,13 +1,17 @@
-import { BadRequestException, Injectable, UnprocessableEntityException } from '@nestjs/common'
+import { HttpException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
 import { HashingService } from 'src/shared/services/hashing.service'
 import { AuthRepository } from './auth.repo'
 import { RoleService } from 'src/routes/auth/role.service'
-import { LoginBodyType, RegisterBodyType, RegisterResponseType, SendOtpCodeBodyType } from './auth.model'
+import {
+  LoginBodyType,
+  RefreshTokenBodyType,
+  RegisterBodyType,
+  RegisterResponseType,
+  SendOtpCodeBodyType,
+} from './auth.model'
 import { SharedRepository } from 'src/shared/repositorys/shared.repo'
 import { genareteCode } from 'src/shared/helpers'
-import { addMilliseconds } from 'date-fns'
 import { VerificationCodeType } from 'src/shared/constants/auth.constant'
-import ms from 'ms'
 import { EmailService } from 'src/shared/services/email.service'
 import { TokenService } from 'src/shared/services/token.service'
 import { AccessTokenPayloadCreate } from 'src/shared/types/jwt.type'
@@ -152,6 +156,48 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
+    }
+  }
+  async refreshToken({ refreshToken, ip, userAgent }: RefreshTokenBodyType & { ip: string; userAgent: string }) {
+    try {
+      const { userId } = await this.tokenService.verifyRefreshToken(refreshToken)
+      if (!userId) {
+        throw new UnprocessableEntityException([{ message: 'Invalid refresh token', path: ['refreshToken'] }])
+      }
+      const refreshTokeninDB = await this.authRepository.findUniqueRefreshTokenIncludeUserRole({
+        token: refreshToken,
+      })
+      if (!refreshTokeninDB) {
+        throw new UnauthorizedException([{ message: 'Refresh token not found', path: ['refreshToken'] }])
+      }
+      const {
+        deviceId,
+        user: { roleId, name: roleName },
+      } = refreshTokeninDB
+
+      const $updatedDevice = this.authRepository.updateDevice(deviceId, {
+        ip,
+        userAgent,
+      })
+
+      const $deletedRefreshToken = this.authRepository.deleteRefreshToken({
+        token: refreshToken,
+      })
+
+      const $tokens = this.GenerateTokens({
+        userId,
+        deviceId,
+        roleId,
+        roleName,
+      })
+
+      const [, , tokens] = await Promise.all([$deletedRefreshToken, $updatedDevice, $tokens])
+      return tokens
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error
+      }
+      throw new UnprocessableEntityException([{ message: 'Invalid refresh token', path: ['refreshToken'] }])
     }
   }
 }

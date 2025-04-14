@@ -183,7 +183,7 @@ model Device {
   user      User     @relation(fields: [userId], references: [id])
   userAgent String
   ip String
-  lastActiveAt DateTime @default(now())
+  lastActiveAt DateTime @updatedAt
   createdAt DateTime @default(now())
   isActive Boolean @default(true)
   refreshTokens RefreshToken[]
