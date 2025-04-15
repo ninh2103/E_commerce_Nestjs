@@ -46,12 +46,12 @@ enum HTTPMethod {
 }
 
 model Language {
-  id          Int      @id @default(autoincrement())
+  id          String       @unique
   name        String
-  code        String   @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
+  @@index([deletedAt])
 
   // Relations
   createdBy   User?    @relation("LanguageCreatedBy", fields: [createdById], references: [id])
@@ -78,6 +78,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   deletedAt    DateTime?
+
+  @@index([deletedAt])
 
   // Relations
   role         Role     @relation(fields: [roleId], references: [id])
@@ -140,11 +142,13 @@ model UserTranslation {
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
 
+  @@index([deletedAt])
+
   // Relations
   user        User     @relation(fields: [userId], references: [id])
   userId      Int
   language    Language @relation(fields: [languageId], references: [id])
-  languageId  Int
+  languageId  String
   createdBy   User?    @relation("UserTranslationCreatedBy", fields: [createdById], references: [id])
   updatedBy   User?    @relation("UserTranslationUpdatedBy", fields: [updatedById], references: [id])
   createdById Int?
@@ -202,6 +206,8 @@ model Permission {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
+  @@index([deletedAt])
+
   // Relations
   createdBy   User?     @relation("PermissionCreatedBy", fields: [createdById], references: [id])
   updatedBy   User?     @relation("PermissionUpdatedBy", fields: [updatedById], references: [id])
@@ -220,6 +226,8 @@ model Role {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+
+  @@index([deletedAt])
 
   // Relations
   createdBy   User?     @relation("RoleCreatedBy", fields: [createdById], references: [id])
@@ -240,6 +248,8 @@ model Product {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
+
+  @@index([deletedAt])
 
   // Relations
   brand        Brand     @relation(fields: [brandId], references: [id])
@@ -265,11 +275,13 @@ model ProductTranslation {
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
 
+  @@index([deletedAt])
+
   // Relations
   product     Product  @relation(fields: [productId], references: [id])
   productId   Int
   language    Language @relation(fields: [languageId], references: [id])
-  languageId  Int
+  languageId  String
   createdBy   User?    @relation("ProductTranslationCreatedBy", fields: [createdById], references: [id])
   updatedBy   User?    @relation("ProductTranslationUpdatedBy", fields: [updatedById], references: [id])
   createdById Int?
@@ -281,6 +293,8 @@ model Category {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   deletedAt        DateTime?
+
+  @@index([deletedAt])
 
   // Relations
   parentCategory   Category? @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id])
@@ -304,11 +318,13 @@ model CategoryTranslation {
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
 
+  @@index([deletedAt])
+
   // Relations
   category    Category @relation(fields: [categoryId], references: [id])
   categoryId  Int
   language    Language @relation(fields: [languageId], references: [id])
-  languageId  Int
+  languageId  String
   createdBy   User?    @relation("CategoryTranslationCreatedBy", fields: [createdById], references: [id])
   updatedBy   User?    @relation("CategoryTranslationUpdatedBy", fields: [updatedById], references: [id])
   createdById Int?
@@ -321,6 +337,8 @@ model Variant {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+
+  @@index([deletedAt])
 
   // Relations
   product     Product   @relation(fields: [productId], references: [id])
@@ -340,6 +358,8 @@ model VariantOption {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+
+  @@index([deletedAt])
 
   // Relations
   variant     Variant   @relation(fields: [variantId], references: [id])
@@ -363,6 +383,8 @@ model SKU {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
+  @@index([deletedAt])
+
   // Relations
   product     Product   @relation(fields: [productId], references: [id])
   productId   Int
@@ -384,6 +406,8 @@ model Brand {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
+  @@index([deletedAt])
+
   // Relations
   createdBy   User?     @relation("BrandCreatedBy", fields: [createdById], references: [id])
   updatedBy   User?     @relation("BrandUpdatedBy", fields: [updatedById], references: [id])
@@ -403,11 +427,13 @@ model BrandTranslation {
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
 
+  @@index([deletedAt])
+
   // Relations
   brand       Brand    @relation(fields: [brandId], references: [id])
   brandId     Int
   language    Language @relation(fields: [languageId], references: [id])
-  languageId  Int
+  languageId  String
   createdBy   User?    @relation("BrandTranslationCreatedBy", fields: [createdById], references: [id])
   updatedBy   User?    @relation("BrandTranslationUpdatedBy", fields: [updatedById], references: [id])
   createdById Int?
@@ -449,6 +475,8 @@ model Order {
   updatedAt   DateTime    @updatedAt
   deletedAt   DateTime?
 
+  @@index([deletedAt])
+
   // Relations
   user        User        @relation(fields: [userId], references: [id])
   userId      Int
@@ -468,6 +496,8 @@ model Review {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
+
+  @@index([deletedAt])
 
   // Relations
   product     Product  @relation(fields: [productId], references: [id])
