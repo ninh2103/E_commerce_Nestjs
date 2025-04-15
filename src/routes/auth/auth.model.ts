@@ -35,7 +35,12 @@ export type RegisterResponseType = z.infer<typeof RegisterResponseSchema>
 export const VerificationCodeSchema = z.object({
   id: z.number(),
   code: z.string().length(6),
-  type: z.enum([VerificationCodeType.REGISTER, VerificationCodeType.FORGOT_PASSWORD]),
+  type: z.enum([
+    VerificationCodeType.REGISTER,
+    VerificationCodeType.FORGOT_PASSWORD,
+    VerificationCodeType.LOGIN,
+    VerificationCodeType.DISABLE_2FA,
+  ]),
   email: z.string().email(),
   expiresAt: z.date(),
   createdAt: z.date(),
@@ -53,7 +58,12 @@ export type SendOtpCodeBodyType = z.infer<typeof SendOtpCodeBodySchema>
 export const LoginBodySchema = UserSchema.pick({
   email: true,
   password: true,
-}).strict()
+})
+  .extend({
+    code: z.string().length(6).optional(),
+    totpCode: z.string().length(6).optional(),
+  })
+  .strict()
 
 export type LoginBodyType = z.infer<typeof LoginBodySchema>
 
@@ -133,3 +143,25 @@ export const ForgotPasswordBodySchema = z
   })
 
 export type ForgotPasswordBodyType = z.infer<typeof ForgotPasswordBodySchema>
+
+export const Disable2FaBodySchema = z
+  .object({
+    code: z.string().length(6).optional(),
+    totpCode: z.string().length(6).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.code && data.totpCode) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Only one of code or totpCode is required',
+      })
+    }
+  })
+export type Disable2FaBodyType = z.infer<typeof Disable2FaBodySchema>
+
+export const Disable2FaResSchema = z.object({
+  secret: z.string(),
+  url: z.string(),
+})
+
+export type Disable2FaResType = z.infer<typeof Disable2FaResSchema>
