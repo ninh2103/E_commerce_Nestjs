@@ -1,6 +1,7 @@
 import { HttpException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
 import { RoleService } from 'src/routes/auth/role.service'
 import {
+  Disable2FaBodyType,
   ForgotPasswordBodyType,
   LoginBodyType,
   LogoutBodyType,
@@ -23,12 +24,17 @@ import {
   FailedToSendOtpException,
   InvalidOtpException,
   InvalidPasswordException,
+  InvalidTOTPCodeAndCodeException,
+  InvalidTOTPCodeException,
   OtpExpiredException,
   RefreshTokenAlreadyUsedException,
+  TOTPCodeAlreadyEnabledException,
+  TOTPCodeNotEnabledException,
   UnAuthorizedAccessException,
 } from 'src/routes/auth/error.model'
 import ms from 'ms'
 import { addMilliseconds } from 'date-fns'
+import { TwoFactorAuthService } from 'src/shared/sharedServices/2fa.service'
 @Injectable()
 export class AuthService {
   constructor(
@@ -38,6 +44,7 @@ export class AuthService {
     private readonly sharedRepository: SharedRepository,
     private readonly emailService: EmailService,
     private readonly tokenService: TokenService,
+    private readonly twoFactorAuthService: TwoFactorAuthService,
   ) {}
 
   async validateVerifyCode({ email, type, code }: { email: string; type: TypeOfVerificationCodeType; code: string }) {
@@ -127,6 +134,25 @@ export class AuthService {
     if (!isPasswordMatch) {
       throw InvalidPasswordException
     }
+
+    if (user.totpSecret) {
+      if (!body.totpCode && !body.code) {
+        throw InvalidTOTPCodeAndCodeException
+      }
+      if (body.totpCode) {
+        const isTOTPCodeValid = this.twoFactorAuthService.verifyTOTP({
+          email: user.email,
+          token: body.totpCode,
+          secret: user.totpSecret,
+        })
+        if (!isTOTPCodeValid) {
+          throw InvalidTOTPCodeException
+        }
+      } else if (body.code) {
+        await this.validateVerifyCode({ email: user.email, type: VerificationCodeType.LOGIN, code: body.code })
+      }
+    }
+
     const device = await this.authRepository.createDevice({
       userId: user.id,
       userAgent: body.userAgent,
@@ -252,6 +278,55 @@ export class AuthService {
 
     return {
       message: 'Password updated successfully',
+    }
+  }
+
+  async setup2FA(userId: number) {
+    const user = await this.authRepository.findUniqueUserIncludeRole({ id: userId })
+    if (!user) {
+      throw EmailNotFoundException
+    }
+    if (user.totpSecret) {
+      throw TOTPCodeAlreadyEnabledException
+    }
+    const { secret, uri } = this.twoFactorAuthService.generateTOTP(user.email)
+    await this.authRepository.updateUser({ id: user.id }, { totpSecret: secret })
+    return {
+      secret,
+      uri,
+    }
+  }
+  async disable2FA(body: Disable2FaBodyType & { userId: number }) {
+    const { userId, code, totpCode } = body
+    const user = await this.sharedRepository.findUnique({ id: userId })
+    if (!user) {
+      throw EmailNotFoundException
+    }
+    if (!user.totpSecret) {
+      throw TOTPCodeNotEnabledException
+    }
+    if (code) {
+      const verifyCode = await this.validateVerifyCode({
+        email: user.email,
+        type: VerificationCodeType.DISABLE_2FA,
+        code,
+      })
+      if (verifyCode.expiresAt < new Date()) {
+        throw OtpExpiredException
+      }
+    } else if (totpCode) {
+      const isTOTPCodeValid = this.twoFactorAuthService.verifyTOTP({
+        email: user.email,
+        token: totpCode,
+        secret: user.totpSecret,
+      })
+      if (!isTOTPCodeValid) {
+        throw InvalidTOTPCodeException
+      }
+    }
+    await this.authRepository.updateUser({ id: user.id }, { totpSecret: null })
+    return {
+      message: '2FA disabled successfully',
     }
   }
 }

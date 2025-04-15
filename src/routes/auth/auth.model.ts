@@ -63,8 +63,14 @@ export const LoginBodySchema = UserSchema.pick({
     code: z.string().length(6).optional(),
     totpCode: z.string().length(6).optional(),
   })
-  .strict()
-
+  .superRefine((data, ctx) => {
+    if (data.code && data.totpCode) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Only one of code or totpCode is required',
+      })
+    }
+  })
 export type LoginBodyType = z.infer<typeof LoginBodySchema>
 
 export const LoginResponseSchema = z.object({
@@ -161,7 +167,7 @@ export type Disable2FaBodyType = z.infer<typeof Disable2FaBodySchema>
 
 export const Disable2FaResSchema = z.object({
   secret: z.string(),
-  url: z.string(),
+  uri: z.string(),
 })
 
 export type Disable2FaResType = z.infer<typeof Disable2FaResSchema>
