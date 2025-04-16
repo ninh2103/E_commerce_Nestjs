@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { Role } from '@prisma/client'
+import { RoleType } from 'src/routes/auth/auth.model'
 import { ROLE_NAME } from 'src/shared/constants/roleName.constant'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 
@@ -10,13 +12,17 @@ export class RoleService {
 
   async getClientRoleId() {
     if (this.clientRoleId) return this.clientRoleId
-    const clientRole = await this.prisma.role.findFirstOrThrow({
-      where: {
-        name: ROLE_NAME.CLIENT,
-      },
+
+    const role: RoleType = await (
+      this.prisma.$queryRaw`
+      SELECT * FROM "Role" WHERE "name" = ${ROLE_NAME.CLIENT} AND "deletedAt" IS NULL LIMIT 1
+    ` as unknown as Promise<RoleType[]>
+    ).then((res) => {
+      if (res.length === 0) throw new NotFoundException('Client role not found')
+      return res[0]
     })
-    if (!clientRole) throw new NotFoundException('Client role not found')
-    this.clientRoleId = clientRole.id
-    return clientRole.id
+
+    this.clientRoleId = role.id
+    return this.clientRoleId
   }
 }

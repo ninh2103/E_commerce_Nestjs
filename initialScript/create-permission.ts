@@ -1,0 +1,72 @@
+import { NestFactory } from '@nestjs/core'
+import { AppModule } from 'src/app.module'
+import { HTTP_METHOD } from 'src/shared/constants/roleName.constant'
+import { PrismaService } from 'src/shared/sharedServices/prisma.service'
+
+async function bootstrap() {
+  const prisma = new PrismaService()
+  const app = await NestFactory.create(AppModule)
+  await app.listen(3000)
+  const server = app.getHttpAdapter().getInstance()
+  const router = server.router
+  const permissionsInDb = await prisma.permission.findMany({
+    where: {
+      deletedAt: null,
+    },
+  })
+
+  const availableRoutes: { path: string; method: keyof typeof HTTP_METHOD; name: string; description: string }[] =
+    router.stack
+      .map((layer) => {
+        if (layer.route) {
+          const route = layer.route
+          const method = String(route.stack[0].method).toUpperCase() as keyof typeof HTTP_METHOD
+          const path = route.path
+          return {
+            path,
+            method,
+            name: `${method} + ${path}`,
+            description: `Create for ${method} + ${path}`,
+          }
+        }
+      })
+      .filter((item) => item !== undefined)
+
+  const permissionsInDbMap: Record<string, (typeof permissionsInDb)[number]> = permissionsInDb.reduce((acc, item) => {
+    acc[`${item.method} + ${item.path}`] = item
+    return acc
+  }, {})
+
+  const availableRoutesMap: Record<string, (typeof availableRoutes)[number]> = availableRoutes.reduce((acc, item) => {
+    acc[`${item.method} + ${item.path}`] = item
+    return acc
+  }, {})
+
+  const permissionsToDelete = permissionsInDb.filter((item) => !availableRoutesMap[`${item.method} + ${item.path}`])
+
+  if (permissionsToDelete.length > 0) {
+    await prisma.permission.deleteMany({
+      where: {
+        id: { in: permissionsToDelete.map((item) => item.id) },
+      },
+    })
+    console.log(`Deleted ${permissionsToDelete.length} permissions`)
+  } else {
+    console.log('No permissions to delete')
+  }
+
+  const permissionsToCreate = availableRoutes.filter((item) => !permissionsInDbMap[`${item.method} + ${item.path}`])
+
+  if (permissionsToCreate.length > 0) {
+    await prisma.permission.createMany({
+      data: permissionsToCreate,
+      skipDuplicates: true,
+    })
+    console.log(`Created ${permissionsToCreate.length} permissions`)
+  } else {
+    console.log('No permissions to create')
+  }
+
+  process.exit(0)
+}
+bootstrap()
