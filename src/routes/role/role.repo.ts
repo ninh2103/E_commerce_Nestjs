@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { CreateRoleBodyType, GetRoleResType, UpdateRoleBodyType } from 'src/routes/role/role.model'
 import { RoleType, RoleWithPermissionsType } from 'src/routes/role/role.model'
 import { RoleQueryType } from 'src/routes/role/role.model'
@@ -43,7 +43,11 @@ export class RoleRepo {
         deletedAt: null,
       },
       include: {
-        permissions: true,
+        permissions: {
+          where: {
+            deletedAt: null,
+          },
+        },
       },
     })
   }
@@ -62,6 +66,25 @@ export class RoleRepo {
     data: UpdateRoleBodyType
     updatedById: number
   }): Promise<RoleType> {
+    if (data.permissionsIds.length > 0) {
+      const permissions = await this.prismaService.permission.findMany({
+        where: {
+          id: { in: data.permissionsIds },
+        },
+      })
+      const deletedPermissions = permissions.filter(
+        (permission) => permission.deletedAt,
+      )
+      if (deletedPermissions.length > 0) {
+        const deletedPermissionsIds = deletedPermissions.map(
+          (permission) => permission.id,
+        ).join(',')
+        throw new BadRequestException(
+          `Permissions with ids ${deletedPermissionsIds} is deleted`,
+        )
+      }
+    }
+
     return this.prismaService.role.update({
       where: { id, deletedAt: null },
       data: {
@@ -74,7 +97,11 @@ export class RoleRepo {
         updatedById,
       },
       include: {
-        permissions: true,
+        permissions: {
+          where: {
+            deletedAt: null,
+          },
+        },
       },
     })
   }

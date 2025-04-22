@@ -16,3 +16,7 @@ export const RoleHasPermissionsException = new UnprocessableEntityException([
 export const RoleHasUsersException = new UnprocessableEntityException([
   { message: 'Error.RoleHasUsers', path: 'users' },
 ])
+
+export const ProhibitedRoleException = new UnprocessableEntityException([
+  { message: 'Error.ProhibitedRole', path: 'name' },
+])

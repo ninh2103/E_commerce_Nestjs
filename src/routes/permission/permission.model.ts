@@ -5,6 +5,7 @@ export const PermissionSchema = z.object({
   id: z.number(),
   name: z.string(),
   description: z.string().nullable(),
+  module: z.string().default(''),
   path: z.string(),
   method: z.enum([
     HTTP_METHOD.GET,
@@ -59,6 +60,7 @@ export const CreatePermissionBodySchema = PermissionSchema.pick({
   description: true,
   path: true,
   method: true,
+  module: true,
 })
 
 export type CreatePermissionBodyType = z.infer<typeof CreatePermissionBodySchema>

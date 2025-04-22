@@ -1,12 +1,12 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from 'src/app.module'
-import { HTTP_METHOD } from 'src/shared/constants/roleName.constant'
+import { HTTP_METHOD, ROLE_NAME } from 'src/shared/constants/roleName.constant'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 
 async function bootstrap() {
   const prisma = new PrismaService()
   const app = await NestFactory.create(AppModule)
-  await app.listen(3000)
+  await app.listen(3001)
   const server = app.getHttpAdapter().getInstance()
   const router = server.router
   const permissionsInDb = await prisma.permission.findMany({
@@ -15,18 +15,20 @@ async function bootstrap() {
     },
   })
 
-  const availableRoutes: { path: string; method: keyof typeof HTTP_METHOD; name: string; description: string }[] =
+  const availableRoutes: { path: string; method: keyof typeof HTTP_METHOD; name: string; description: string; module: string }[] =
     router.stack
       .map((layer) => {
         if (layer.route) {
           const route = layer.route
           const method = String(route.stack[0].method).toUpperCase() as keyof typeof HTTP_METHOD
           const path = route.path
+          const module = path.split('/')[1].toLowerCase()
           return {
             path,
             method,
             name: `${method} + ${path}`,
             description: `Create for ${method} + ${path}`,
+            module,
           }
         }
       })
@@ -66,6 +68,30 @@ async function bootstrap() {
   } else {
     console.log('No permissions to create')
   }
+
+  const updatedPermissions = await prisma.permission.findMany({
+    where: {
+      deletedAt: null,
+    },
+  })
+
+  const adminRole = await prisma.role.findFirstOrThrow({
+    where: {
+      name: ROLE_NAME.ADMIN,
+      deletedAt: null,
+    },
+  })
+
+  await prisma.role.update({
+    where: {
+      id: adminRole.id,
+    },
+    data: {
+      permissions: { set: updatedPermissions.map((item) => ({ id: item.id })) },
+    },
+  })
+
+    
 
   process.exit(0)
 }
