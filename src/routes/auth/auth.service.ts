@@ -95,7 +95,7 @@ export class AuthService {
     }
   }
   async sendOtpCode(body: SendOtpCodeBodyType) {
-    const user = await this.sharedRepository.findUnique({ email: body.email, deletedAt: null })
+    const user = await this.sharedRepository.findUnique({ email: body.email })
     if (body.type === VerificationCodeType.REGISTER && user) {
       throw EmailAlreadyExistsException
     }
@@ -126,7 +126,7 @@ export class AuthService {
     }
   }
   async login(body: LoginBodyType & { userAgent: string; ip: string }) {
-    const user = await this.authRepository.findUniqueUserIncludeRole({ email: body.email,deletedAt:null })
+    const user = await this.authRepository.findUniqueUserIncludeRole({ email: body.email })
     if (!user) {
       throw EmailNotFoundException
     }
@@ -258,7 +258,7 @@ export class AuthService {
   }
   async forgotPassword(body: ForgotPasswordBodyType) {
     const { email, code, newPassword } = body
-    const user = await this.sharedRepository.findUnique({ email, deletedAt: null })
+    const user = await this.sharedRepository.findUnique({ email })
     if (!user) {
       throw EmailNotFoundException
     }
@@ -266,7 +266,7 @@ export class AuthService {
     const hashPassword = await this.hashingService.hash(newPassword)
 
     await Promise.all([
-      this.sharedRepository.update({ id: user.id, deletedAt: null }, { password: hashPassword, updatedById: user.id }),
+      this.sharedRepository.update({ id: user.id }, { password: hashPassword, updatedById: user.id }),
       this.authRepository.deleteVerificationCode({
         email_code_type: {
           email,
@@ -282,7 +282,7 @@ export class AuthService {
   }
 
   async setup2FA(userId: number) {
-    const user = await this.authRepository.findUniqueUserIncludeRole({ id: userId,deletedAt:null })
+    const user = await this.authRepository.findUniqueUserIncludeRole({ id: userId })
     if (!user) {
       throw EmailNotFoundException
     }
@@ -290,7 +290,7 @@ export class AuthService {
       throw TOTPCodeAlreadyEnabledException
     }
     const { secret, uri } = this.twoFactorAuthService.generateTOTP(user.email)
-    await this.sharedRepository.update({ id: user.id, deletedAt: null }, { totpSecret: secret, updatedById: user.id })
+    await this.sharedRepository.update({ id: user.id }, { totpSecret: secret, updatedById: user.id })
     return {
       secret,
       uri,
@@ -298,7 +298,7 @@ export class AuthService {
   }
   async disable2FA(body: Disable2FaBodyType & { userId: number }) {
     const { userId, code, totpCode } = body
-    const user = await this.sharedRepository.findUnique({ id: userId, deletedAt: null })
+    const user = await this.sharedRepository.findUnique({ id: userId })
     if (!user) {
       throw EmailNotFoundException
     }
@@ -324,7 +324,7 @@ export class AuthService {
         throw InvalidTOTPCodeException
       }
     }
-    await this.sharedRepository.update({ id: user.id, deletedAt: null }, { totpSecret: null, updatedById: user.id })
+    await this.sharedRepository.update({ id: user.id }, { totpSecret: null, updatedById: user.id })
     return {
       message: '2FA disabled successfully',
     }

@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import {
-  DeviceType,
-  RefreshTokenType,
-  RegisterBodyType,
-  VerificationCodeType,
-} from 'src/routes/auth/auth.model'
+import { DeviceType, RefreshTokenType, RegisterBodyType, VerificationCodeType } from 'src/routes/auth/auth.model'
 import { TypeOfVerificationCodeType, UserStatus } from 'src/shared/constants/auth.constant'
 import { RoleType } from 'src/shared/models/share-role.model'
 import { UserType } from 'src/shared/models/shared-user.model'
@@ -63,11 +58,12 @@ export class AuthRepository {
       data: payload,
     })
   }
-  async findUniqueUserIncludeRole(
-    where: WhereUniqueUserType,
-  ): Promise<(UserType & { role: RoleType }) | null> {
-    return await this.prismaService.user.findUnique({
-      where: where,
+  async findUniqueUserIncludeRole(where: WhereUniqueUserType): Promise<(UserType & { role: RoleType }) | null> {
+    return await this.prismaService.user.findFirst({
+      where: {
+        ...where,
+        deletedAt: null,
+      },
       include: {
         role: true,
       },
@@ -101,9 +97,7 @@ export class AuthRepository {
   }
 
   async deleteVerificationCode(
-    where:
-      | { id: number }
-      | { email_code_type: { email: string; code: string; type: TypeOfVerificationCodeType } },
+    where: { id: number } | { email_code_type: { email: string; code: string; type: TypeOfVerificationCodeType } },
   ): Promise<VerificationCodeType> {
     return await this.prismaService.verificationCode.delete({
       where: where,
