@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { CreateUserBodyType, GetUserQueryType, GetUserResType } from 'src/routes/user/user.model'
+import { CreateUserBodyType, GetUserQueryType, GetUserResType, UpdateUserBodyType } from 'src/routes/user/user.model'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 
 @Injectable()
@@ -22,6 +22,10 @@ export class UserRepository {
         },
         skip,
         take,
+        omit: {
+          password: true,
+          totpSecret: true,
+        },
         include: {
           role: {
             select: {
@@ -48,6 +52,10 @@ export class UserRepository {
         ...data,
         createdById,
       },
+      omit: {
+        password: true,
+        totpSecret: true,
+      },
     })
   }
   delete(id: number, isHardDelete?: boolean) {
@@ -66,5 +74,19 @@ export class UserRepository {
             deletedAt: new Date(),
           },
         })
+  }
+
+  update(id: number, data: UpdateUserBodyType, updatedById: number) {
+    return this.prismaService.user.update({
+      where: { id },
+      data: {
+        ...data,
+        updatedById,
+      },
+      omit: {
+        password: true,
+        totpSecret: true,
+      },
+    })
   }
 }

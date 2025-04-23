@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/
 import { UserService } from './user.service'
 import {
   CreateUserBodyDto,
+  CreateUserResDto,
   GetUserParamsDto,
   GetUserQueryDto,
   GetUserResDto,
@@ -31,6 +32,7 @@ export class UserController {
   }
 
   @Post()
+  @ZodSerializerDto(CreateUserResDto)
   async create(
     @Body() body: CreateUserBodyDto,
     @ActiveUser('userId') userId: number,
@@ -44,6 +46,7 @@ export class UserController {
   }
 
   @Put(':userId')
+  @ZodSerializerDto(CreateUserResDto)
   async update(
     @Param() params: GetUserParamsDto,
     @Body() body: UpdateUserBodyDto,

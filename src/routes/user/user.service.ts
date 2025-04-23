@@ -2,9 +2,7 @@ import { ForbiddenException, Injectable } from '@nestjs/common'
 import { UserRepository } from './user.repo'
 import { CreateUserBodyType, GetUserQueryType, UpdateUserBodyType } from 'src/routes/user/user.model'
 import {
-  CannotDeleteYourselfException,
   CannotUpdateYourselfException,
-  NotFoundSetAdminRoleToUserException,
   RoleNotFoundException,
   UserAlreadyExistsException,
   UserNotFoundException,
@@ -111,16 +109,7 @@ export class UserService {
 
       await this.verifyRole({ roleNameAgent: updatedByRoleName, roleIdAgent: roleIdTarget })
 
-      const hashedPassword = await this.hashingService.hash(data.password)
-
-      const updatedUser = await this.sharedRepo.update(
-        { id, deletedAt: null },
-        {
-          ...data,
-          password: hashedPassword,
-          updatedById,
-        },
-      )
+      const updatedUser = await this.userRepo.update(id, data, updatedById)
 
       return updatedUser
     } catch (error) {

@@ -2,17 +2,15 @@ import { RoleSchema } from 'src/shared/models/share-role.model'
 import { UserSchema } from 'src/shared/models/shared-user.model'
 import { z } from 'zod'
 
-export const GetUserSchema = z
-  .object({
-    data: z.array(
-      UserSchema.omit({ password: true, totpSecret: true }).extend({ role: RoleSchema.pick({ id: true, name: true }) }),
-    ),
-    totalItems: z.number(),
-    totalPages: z.number(),
-    page: z.number(),
-    limit: z.number(),
-  })
-  .strict()
+export const GetUserSchema = z.object({
+  data: z.array(
+    UserSchema.omit({ password: true, totpSecret: true }).extend({ role: RoleSchema.pick({ id: true, name: true }) }),
+  ),
+  totalItems: z.number(),
+  totalPages: z.number(),
+  page: z.number(),
+  limit: z.number(),
+})
 
 export type GetUserResType = z.infer<typeof GetUserSchema>
 
