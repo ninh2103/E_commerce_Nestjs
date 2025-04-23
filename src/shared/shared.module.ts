@@ -10,6 +10,7 @@ import { TokenService } from 'src/shared/sharedServices/token.service'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 import { EmailService } from 'src/shared/sharedServices/email.service'
 import { TwoFactorAuthService } from 'src/shared/sharedServices/2fa.service'
+import { ShareRoleRepository } from 'src/shared/repositorys/share-role.repo'
 
 const SharedServices = [
   PrismaService,
@@ -18,6 +19,7 @@ const SharedServices = [
   SharedRepository,
   EmailService,
   TwoFactorAuthService,
+  ShareRoleRepository,
 ]
 
 @Global()

@@ -1,5 +1,5 @@
 export const REQUEST_USER_KEY = 'user'
-
+export const REQUEST_ROLE_KEY = 'request_role_permission'
 export const AuthType = {
   Bearer: 'Bearer',
   None: 'None',

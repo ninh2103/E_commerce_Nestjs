@@ -3,10 +3,10 @@ import {
   DeviceType,
   RefreshTokenType,
   RegisterBodyType,
-  RoleType,
   VerificationCodeType,
 } from 'src/routes/auth/auth.model'
 import { TypeOfVerificationCodeType, UserStatus } from 'src/shared/constants/auth.constant'
+import { RoleType } from 'src/shared/models/share-role.model'
 import { UserType } from 'src/shared/models/shared-user.model'
 import { WhereUniqueUserType } from 'src/shared/repositorys/shared.repo'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
@@ -99,15 +99,7 @@ export class AuthRepository {
       where: where,
     })
   }
-  // async updateUser(
-  //   where: { id: number } | { email: string },
-  //   payload: Partial<Omit<UserType, 'id'>>,
-  // ): Promise<UserType> {
-  //   return await this.prismaService.user.update({
-  //     where,
-  //     data: payload,
-  //   })
-  // }
+
   async deleteVerificationCode(
     where:
       | { id: number }

@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { CreateRoleBodyType, GetRoleResType, UpdateRoleBodyType } from 'src/routes/role/role.model'
-import { RoleType, RoleWithPermissionsType } from 'src/routes/role/role.model'
+import {  RoleWithPermissionsType } from 'src/routes/role/role.model'
 import { RoleQueryType } from 'src/routes/role/role.model'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
+import { RoleType } from 'src/shared/models/share-role.model'
 
 @Injectable()
-export class RoleRepo {
+export class RoleRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async list(pagination: RoleQueryType): Promise<GetRoleResType> {

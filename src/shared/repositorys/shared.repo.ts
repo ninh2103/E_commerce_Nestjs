@@ -2,28 +2,28 @@ import { Injectable } from '@nestjs/common'
 import { UserType } from '../models/shared-user.model'
 import { PrismaService } from '../sharedServices/prisma.service'
 
-export type WhereUniqueUserType = {id:number, [key:string]:any} | {email:string, [key:string]:any}
+export type WhereUniqueUserType = { id: number; [key: string]: any } | { email: string; [key: string]: any }
 
 export type UserIncludeRolePermissionType = Omit<UserType, 'password' | 'totpSecret'> & {
   role: {
-    id: number;
-    name: string;
+    id: number
+    name: string
     permissions: Array<{
-      id: number;
-      name: string;
-      module: string;
-      path: string;
-      method: string;
-      description: string;
-    }>;
-  };
-};
+      id: number
+      name: string
+      module: string
+      path: string
+      method: string
+      description: string
+    }>
+  }
+}
 
 @Injectable()
 export class SharedRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-   findUnique(uniqueObject: WhereUniqueUserType): Promise<UserType | null> {
+  findUnique(uniqueObject: WhereUniqueUserType): Promise<UserType | null> {
     return this.prisma.user.findUnique({
       where: uniqueObject,
     })
@@ -51,7 +51,7 @@ export class SharedRepository {
             name: true,
             permissions: {
               where: {
-                deletedAt: null
+                deletedAt: null,
               },
               select: {
                 id: true,
@@ -59,12 +59,12 @@ export class SharedRepository {
                 module: true,
                 path: true,
                 method: true,
-                description: true
-              }
-            }
-          }
-        }
-      }
+                description: true,
+              },
+            },
+          },
+        },
+      },
     })
   }
   update(where: WhereUniqueUserType, data: Partial<UserType>): Promise<UserType> {

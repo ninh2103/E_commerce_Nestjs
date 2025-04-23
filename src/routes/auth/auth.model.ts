@@ -102,19 +102,7 @@ export const DeviceSchema = z.object({
 
 export type DeviceType = z.infer<typeof DeviceSchema>
 
-export const RoleSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  description: z.string(),
-  isActive: z.boolean(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  createdById: z.number().nullable(),
-  updatedById: z.number().nullable(),
-  deletedAt: z.date().nullable(),
-})
 
-export type RoleType = z.infer<typeof RoleSchema>
 
 const RefreshTokenSchema = z.object({
   token: z.string(),

@@ -1,5 +1,5 @@
-import { HttpException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
-import { RoleService } from 'src/routes/auth/role.service'
+import { HttpException, Injectable, UnprocessableEntityException } from '@nestjs/common'
+import { ShareRoleRepository } from 'src/shared/repositorys/share-role.repo'
 import {
   Disable2FaBodyType,
   ForgotPasswordBodyType,
@@ -40,7 +40,7 @@ export class AuthService {
   constructor(
     private readonly hashingService: HashingService,
     private readonly authRepository: AuthRepository,
-    private readonly roleService: RoleService,
+    private readonly shareRoleRepository: ShareRoleRepository,
     private readonly sharedRepository: SharedRepository,
     private readonly emailService: EmailService,
     private readonly tokenService: TokenService,
@@ -68,7 +68,7 @@ export class AuthService {
     try {
       await this.validateVerifyCode({ email: body.email, type: VerificationCodeType.REGISTER, code: body.code })
       const hashPassword = await this.hashingService.hash(body.password)
-      const roleId = await this.roleService.getClientRoleId()
+      const roleId = await this.shareRoleRepository.getClientRoleId()
 
       const [user] = await Promise.all([
         this.authRepository.createUser({
