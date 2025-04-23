@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common'
 import { UserType } from '../models/shared-user.model'
 import { PrismaService } from '../sharedServices/prisma.service'
 
-type WhereUniqueUserType = {id:number, [key:string]:any} | {email:string, [key:string]:any}
+export type WhereUniqueUserType = {id:number, [key:string]:any} | {email:string, [key:string]:any}
 
-type UserIncludeRolePermissionType = Omit<UserType, 'password' | 'totpSecret'> & {
+export type UserIncludeRolePermissionType = Omit<UserType, 'password' | 'totpSecret'> & {
   role: {
     id: number;
     name: string;

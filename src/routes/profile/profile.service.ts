@@ -3,8 +3,8 @@ import { ChangePasswordBodyType, UpdateMeBodyType } from 'src/routes/profile/pro
 import { SharedRepository } from 'src/shared/repositorys/shared.repo';
 import { isUniqueContraintPrismaError } from 'src/shared/helpers'
 import { HashingService } from 'src/shared/sharedServices/hashing.service';
-import {  InvalidPasswordException, NotFoundRecordException, UserNotFoundException } from './error.profile';
-
+import {  NotFoundRecordException, UserNotFoundException } from './error.profile';
+import { InvalidPasswordException } from 'src/shared/errors';
 @Injectable()
 export class ProfileService {
     constructor(private readonly sharedRepo:SharedRepository,

@@ -8,6 +8,7 @@ import {
 } from 'src/routes/auth/auth.model'
 import { TypeOfVerificationCodeType, UserStatus } from 'src/shared/constants/auth.constant'
 import { UserType } from 'src/shared/models/shared-user.model'
+import { WhereUniqueUserType } from 'src/shared/repositorys/shared.repo'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 @Injectable()
 export class AuthRepository {
@@ -63,20 +64,20 @@ export class AuthRepository {
     })
   }
   async findUniqueUserIncludeRole(
-    uniqueObject: { id: number } | { email: string },
+    where: WhereUniqueUserType,
   ): Promise<(UserType & { role: RoleType }) | null> {
     return await this.prismaService.user.findUnique({
-      where: uniqueObject,
+      where: where,
       include: {
         role: true,
       },
     })
   }
-  async findUniqueRefreshTokenIncludeUserRole(uniqueObject: {
+  async findUniqueRefreshTokenIncludeUserRole(where: {
     token: string
   }): Promise<(RefreshTokenType & { user: UserType & { role: RoleType } }) | null> {
     return await this.prismaService.refreshToken.findUnique({
-      where: uniqueObject,
+      where: where,
       include: {
         user: {
           include: {
@@ -93,27 +94,27 @@ export class AuthRepository {
     })
   }
 
-  async deleteRefreshToken(uniqueObject: { token: string }): Promise<RefreshTokenType> {
+  async deleteRefreshToken(where: { token: string }): Promise<RefreshTokenType> {
     return await this.prismaService.refreshToken.delete({
-      where: uniqueObject,
+      where: where,
     })
   }
-  async updateUser(
-    where: { id: number } | { email: string },
-    payload: Partial<Omit<UserType, 'id'>>,
-  ): Promise<UserType> {
-    return await this.prismaService.user.update({
-      where,
-      data: payload,
-    })
-  }
+  // async updateUser(
+  //   where: { id: number } | { email: string },
+  //   payload: Partial<Omit<UserType, 'id'>>,
+  // ): Promise<UserType> {
+  //   return await this.prismaService.user.update({
+  //     where,
+  //     data: payload,
+  //   })
+  // }
   async deleteVerificationCode(
-    uniqueObject:
+    where:
       | { id: number }
       | { email_code_type: { email: string; code: string; type: TypeOfVerificationCodeType } },
   ): Promise<VerificationCodeType> {
     return await this.prismaService.verificationCode.delete({
-      where: uniqueObject,
+      where: where,
     })
   }
 }
