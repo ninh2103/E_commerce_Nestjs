@@ -1,6 +1,8 @@
 import { UnauthorizedException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { randomInt } from 'crypto'
+import path from 'path'
+import { v4 as uuidv4 } from 'uuid'
 
 export function isUniqueContraintPrismaError(error: any): error is Prisma.PrismaClientKnownRequestError {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
@@ -31,3 +33,10 @@ export function extractAccessToken(request: any): string {
 
   return parts[1]
 }
+
+export function generateRandomFileName(fileName: string): string {
+  const ext = path.extname(fileName)
+  return `${uuidv4()}${ext}`
+}
+
+export const uploadDir = path.resolve('uploads')

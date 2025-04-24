@@ -25,6 +25,7 @@ const ConfigSchema = z.object({
   ADMIN_PHONE_NUMBER: z.string(),
   VERIFICATION_CODE_EXPIRES_IN: z.string(),
   API_KEY: z.string(),
+  PREFIX_STATIC_ENDPOINT: z.string(),
 })
 
 const configServer = ConfigSchema.parse(process.env)
