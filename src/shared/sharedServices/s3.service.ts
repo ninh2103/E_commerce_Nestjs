@@ -3,8 +3,8 @@ import { Upload } from '@aws-sdk/lib-storage'
 import { Injectable } from '@nestjs/common'
 import { readFileSync } from 'fs'
 import envConfig from 'src/shared/config'
-import mime from 'mime'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { lookup } from 'mime-types'
 
 @Injectable()
 export class S3Service {
@@ -36,11 +36,11 @@ export class S3Service {
     return parallelUploads3.done()
   }
 
-  createPresignedUrlwithClient(fileName: string) {
-    const contentType = mime.lookup(fileName) || 'application/octet-stream'
+  createPresignedUrlwithClient(filename: string) {
+    const contentType = lookup(filename) || 'application/octet-stream'
     const command = new PutObjectCommand({
       Bucket: envConfig.S3_BUCKET_NAME,
-      Key: fileName,
+      Key: filename,
       ContentType: contentType,
     })
     return getSignedUrl(this.s3, command, { expiresIn: 60 * 60 * 24 })

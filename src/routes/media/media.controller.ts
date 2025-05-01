@@ -13,16 +13,17 @@ import {
 import { Controller } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { Response } from 'express'
+import { ZodSerializerDto } from 'nestjs-zod'
 import path from 'path'
 import { MediaService } from 'src/routes/media/media.service'
-import envConfig from 'src/shared/config'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { uploadDir } from 'src/shared/helpers'
-import { S3Service } from 'src/shared/sharedServices/s3.service'
+import { PresignedUploadFileBodyDto, PresignedUploadFileResponseDto } from 'src/routes/media/media.dto'
 @Controller('upload')
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
   @Post('images')
+  @ZodSerializerDto(PresignedUploadFileResponseDto)
   @UseInterceptors(
     FilesInterceptor('files', 100, {
       limits: {
@@ -52,8 +53,9 @@ export class MediaController {
     })
   }
   @Post('presigned-url')
+  @ZodSerializerDto(PresignedUploadFileResponseDto)
   @IsPublic()
-  createPresignedUrl(@Body() body: { fileName: string }) {
+  createPresignedUrl(@Body() body: PresignedUploadFileBodyDto) {
     return this.mediaService.createPresignedUrl(body)
   }
 }

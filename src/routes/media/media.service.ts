@@ -1,12 +1,17 @@
 import { Injectable } from '@nestjs/common'
 import { unlink } from 'fs/promises'
+import {
+  PresignedUploadFileBodyType,
+  PresignedUploadFileResponseType,
+  PresignedUploadFileResType,
+} from 'src/routes/media/media.model'
 import { generateRandomFileName } from 'src/shared/helpers'
 import { S3Service } from 'src/shared/sharedServices/s3.service'
 
 @Injectable()
 export class MediaService {
   constructor(private readonly s3Service: S3Service) {}
-  async uploadFile(files: Express.Multer.File[]) {
+  async uploadFile(files: Express.Multer.File[]): Promise<PresignedUploadFileResponseType> {
     const result = Promise.all(
       files.map(async (file) => {
         return this.s3Service
@@ -16,8 +21,11 @@ export class MediaService {
             contentType: file.mimetype,
           })
           .then((result) => {
+            if (!result.Location) {
+              throw new Error('Failed to get file location from S3')
+            }
             return {
-              result: { url: result.Location },
+              url: result.Location,
             }
           })
       }),
@@ -28,15 +36,16 @@ export class MediaService {
       }),
     )
 
-    return result
+    return { data: await result }
   }
 
-  async createPresignedUrl(body: { fileName: string }) {
-    const randomFileName = generateRandomFileName(body.fileName)
+  async createPresignedUrl(body: PresignedUploadFileBodyType): Promise<PresignedUploadFileResType> {
+    const randomFileName = generateRandomFileName(body.filename)
     const presignedUrl = await this.s3Service.createPresignedUrlwithClient(randomFileName)
     const url = presignedUrl.split('?')[0]
     return {
-      result: { presignedUrl, url: url },
+      presignedUrl,
+      url,
     }
   }
 }
