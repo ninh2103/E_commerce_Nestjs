@@ -1,4 +1,5 @@
 import {
+  Body,
   Get,
   MaxFileSizeValidator,
   NotFoundException,
@@ -13,11 +14,14 @@ import { Controller } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { Response } from 'express'
 import path from 'path'
+import { MediaService } from 'src/routes/media/media.service'
 import envConfig from 'src/shared/config'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { uploadDir } from 'src/shared/helpers'
+import { S3Service } from 'src/shared/sharedServices/s3.service'
 @Controller('upload')
 export class MediaController {
+  constructor(private readonly mediaService: MediaService) {}
   @Post('images')
   @UseInterceptors(
     FilesInterceptor('files', 100, {
@@ -34,9 +38,7 @@ export class MediaController {
     )
     files: Express.Multer.File[],
   ) {
-    return files.map((file) => ({
-      url: `${envConfig.PREFIX_STATIC_ENDPOINT}/${file.filename}`,
-    }))
+    return this.mediaService.uploadFile(files)
   }
 
   @Get('static/:filename')
@@ -48,5 +50,10 @@ export class MediaController {
         res.status(notFound.getStatus()).json(notFound.getResponse())
       }
     })
+  }
+  @Post('presigned-url')
+  @IsPublic()
+  createPresignedUrl(@Body() body: { fileName: string }) {
+    return this.mediaService.createPresignedUrl(body)
   }
 }

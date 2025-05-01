@@ -26,6 +26,10 @@ const ConfigSchema = z.object({
   VERIFICATION_CODE_EXPIRES_IN: z.string(),
   API_KEY: z.string(),
   PREFIX_STATIC_ENDPOINT: z.string(),
+  S3_REGION: z.string(),
+  S3_ACCESS_KEY: z.string(),
+  S3_SECRET_KEY: z.string(),
+  S3_BUCKET_NAME: z.string(),
 })
 
 const configServer = ConfigSchema.parse(process.env)
