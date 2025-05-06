@@ -8,14 +8,14 @@ export const BrandSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   deletedAt: z.date().nullable(),
-  createdById: z.number(),
-  updatedById: z.number(),
+  createdById: z.number().nullable(),
+  updatedById: z.number().nullable(),
 })
 
 export type BrandType = z.infer<typeof BrandSchema>
 
 const BrandIncludeTranslationSchema = BrandSchema.extend({
-  brandTranslations: z.array(BrandTranslationSchema),
+  translations: z.array(BrandTranslationSchema),
 })
 
 export type BrandIncludeTranslationType = z.infer<typeof BrandIncludeTranslationSchema>
@@ -31,7 +31,7 @@ export const GetBrandResSchema = z.object({
 export type GetBrandResType = z.infer<typeof GetBrandResSchema>
 
 export const GetBrandParamsSchema = z.object({
-  brandId: z.string().optional(),
+  brandId: z.coerce.number(),
 })
 
 export type GetBrandType = z.infer<typeof GetBrandParamsSchema>
@@ -40,13 +40,15 @@ export const getBrandDetailResSchema = BrandIncludeTranslationSchema
 
 export type GetBrandDetailResType = z.infer<typeof getBrandDetailResSchema>
 
-export const CreateBrandSchema = BrandSchema.extend({
-  name: z.string(),
-  logo: z.string(),
-}).strict()
+export const CreateBrandBodySchema = z
+  .object({
+    name: z.string(),
+    logo: z.string(),
+  })
+  .strict()
 
-export type CreateBrandType = z.infer<typeof CreateBrandSchema>
+export type CreateBrandBodyType = z.infer<typeof CreateBrandBodySchema>
 
-export const UpdateBrandSchema = CreateBrandSchema
+export const UpdateBrandBodySchema = CreateBrandBodySchema
 
-export type UpdateBrandType = z.infer<typeof UpdateBrandSchema>
+export type UpdateBrandBodyType = z.infer<typeof UpdateBrandBodySchema>
