@@ -4,18 +4,19 @@ import { PaginationType } from 'src/shared/models/request.model'
 import { BrandAlreadyExistsException, BrandNotFoundException } from 'src/routes/brand/brand.erorr'
 import { CreateBrandBodyType, UpdateBrandBodyType } from 'src/routes/brand/brand.model'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
+import { I18nContext } from 'nestjs-i18n'
 
 @Injectable()
 export class BrandService {
   constructor(private readonly brandRepository: BrandRepo) {}
 
   async list(pagination: PaginationType) {
-    const data = await this.brandRepository.list(pagination)
+    const data = await this.brandRepository.list(pagination, I18nContext.current()?.lang as string)
     return data
   }
 
   async getById(id: number) {
-    const data = await this.brandRepository.getById(id)
+    const data = await this.brandRepository.getById(id, I18nContext.current()?.lang as string)
     if (!data) {
       throw BrandNotFoundException
     }

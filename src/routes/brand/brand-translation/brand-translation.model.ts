@@ -25,15 +25,15 @@ export const GetBrandTranslationResSchema = BrandTranslationSchema
 
 export type GetBrandTranslationResType = z.infer<typeof GetBrandTranslationResSchema>
 
-export const CreateBrandTranslationSchema = BrandTranslationSchema.pick({
+export const CreateBrandTranslationBodySchema = BrandTranslationSchema.pick({
   name: true,
   description: true,
   brandId: true,
   languageId: true,
 })
 
-export type CreateBrandTranslationType = z.infer<typeof CreateBrandTranslationSchema>
+export type CreateBrandTranslationBodyType = z.infer<typeof CreateBrandTranslationBodySchema>
 
-export const UpdateBrandTranslationSchema = CreateBrandTranslationSchema
+export const UpdateBrandTranslationBodySchema = CreateBrandTranslationBodySchema.partial()
 
-export type UpdateBrandTranslationType = z.infer<typeof UpdateBrandTranslationSchema>
+export type UpdateBrandTranslationBodyType = z.infer<typeof UpdateBrandTranslationBodySchema>

@@ -6,6 +6,7 @@ import {
   GetBrandResType,
   UpdateBrandBodyType,
 } from 'src/routes/brand/brand.model'
+import { ALL_LANGUAGE } from 'src/shared/constants/orther.constant'
 import { PaginationType } from 'src/shared/models/request.model'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 
@@ -13,7 +14,7 @@ import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 export class BrandRepo {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async list(pagination: PaginationType, languageId?: string): Promise<GetBrandResType> {
+  async list(pagination: PaginationType, languageId: string): Promise<GetBrandResType> {
     const skip = (pagination.page - 1) * pagination.limit
     const take = pagination.limit
 
@@ -29,7 +30,7 @@ export class BrandRepo {
         },
         include: {
           translations: {
-            where: languageId ? { deletedAt: null, languageId } : { deletedAt: null },
+            where: languageId == ALL_LANGUAGE ? { deletedAt: null } : { deletedAt: null, languageId },
           },
         },
         orderBy: {
@@ -47,10 +48,14 @@ export class BrandRepo {
       limit: pagination.limit,
     }
   }
-  async getById(id: number, languageId?: string): Promise<BrandIncludeTranslationType | null> {
+  async getById(id: number, languageId: string): Promise<BrandIncludeTranslationType | null> {
     return await this.prismaService.brand.findUnique({
       where: { id, deletedAt: null },
-      include: { translations: { where: languageId ? { deletedAt: null, languageId } : { deletedAt: null } } },
+      include: {
+        translations: {
+          where: languageId == ALL_LANGUAGE ? { deletedAt: null } : { deletedAt: null, languageId },
+        },
+      },
     })
   }
   async create({
