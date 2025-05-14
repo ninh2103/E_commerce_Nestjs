@@ -16,7 +16,7 @@ export const BrandTranslationSchema = z.object({
 export type BrandTranslationType = z.infer<typeof BrandTranslationSchema>
 
 export const GetBrandTranslationParamsSchema = z.object({
-  brandTranslationId: z.string(),
+  brandTranslationId: z.coerce.number(),
 })
 
 export type GetBrandTranslationParamsType = z.infer<typeof GetBrandTranslationParamsSchema>

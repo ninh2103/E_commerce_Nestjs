@@ -3,8 +3,6 @@ import { CreateBrandBodyDto, GetBrandParamsDto, UpdateBrandBodyDto } from 'src/r
 import { BrandService } from 'src/routes/brand/brand.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
-import { PaginationType } from 'src/shared/models/request.model'
-import { ZodSerializerDto } from 'nestjs-zod'
 import { PaginationDto } from 'src/shared/dto/request.dto'
 
 @Controller('brand')

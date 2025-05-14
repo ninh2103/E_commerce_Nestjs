@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { BrandRepo } from './brand.repo'
 import { PaginationType } from 'src/shared/models/request.model'
-import { BrandAlreadyExistsException, BrandNotFoundException } from 'src/routes/brand/brand.erorr'
+import { BrandNotFoundException } from 'src/routes/brand/brand.erorr'
 import { CreateBrandBodyType, UpdateBrandBodyType } from 'src/routes/brand/brand.model'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
 import { I18nContext } from 'nestjs-i18n'
