@@ -93,8 +93,6 @@ model User {
   userTranslations     UserTranslation[]
   products            Product[]         @relation("ProductCreatedBy")
   categories          Category[]        @relation("CategoryCreatedBy")
-  variants            Variant[]         @relation("VariantCreatedBy")
-  variantOptions      VariantOption[]   @relation("VariantOptionCreatedBy")
   skus                SKU[]             @relation("SKUCreatedBy")
   brands              Brand[]           @relation("BrandCreatedBy")
   cartItems           CartItem[]
@@ -124,8 +122,6 @@ model User {
   updatedCategories          Category[]            @relation("CategoryUpdatedBy")
   createdCategoryTranslations CategoryTranslation[] @relation("CategoryTranslationCreatedBy")
   updatedCategoryTranslations CategoryTranslation[] @relation("CategoryTranslationUpdatedBy")
-  updatedVariants            Variant[]             @relation("VariantUpdatedBy")
-  updatedVariantOptions      VariantOption[]       @relation("VariantOptionUpdatedBy")
   updatedSKUs                SKU[]                 @relation("SKUUpdatedBy")
   updatedBrands              Brand[]               @relation("BrandUpdatedBy")
   createdBrandTranslations   BrandTranslation[]    @relation("BrandTranslationCreatedBy")
@@ -243,8 +239,10 @@ model Role {
 
 model Product {
   id           Int       @id @default(autoincrement())
-  base_price   Float
-  virtual_price Float
+  publishAt    DateTime?
+  name         String
+  basePrice   Float
+  virtualPrice Float
   images       String[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -262,9 +260,9 @@ model Product {
 
   // Related data
   translations ProductTranslation[]
-  variants     Variant[]
   skus         SKU[]
   reviews      Review[]
+  variants     Json
   categories   Category[] @relation("ProductsCategories")
 }
 
@@ -334,54 +332,14 @@ model CategoryTranslation {
   updatedById Int?
 }
 
-model Variant {
-  id          Int       @id @default(autoincrement())
-  name        String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
 
-  @@index([deletedAt])
-
-  // Relations
-  product     Product   @relation(fields: [productId], references: [id])
-  productId   Int
-  createdBy   User?     @relation("VariantCreatedBy", fields: [createdById], references: [id])
-  updatedBy   User?     @relation("VariantUpdatedBy", fields: [updatedById], references: [id])
-  createdById Int?
-  updatedById Int?
-
-  // Related data
-  options     VariantOption[]
-}
-
-model VariantOption {
-  id          Int       @id @default(autoincrement())
-  value       String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-
-  @@index([deletedAt])
-
-  // Relations
-  variant     Variant   @relation(fields: [variantId], references: [id])
-  variantId   Int
-  createdBy   User?     @relation("VariantOptionCreatedBy", fields: [createdById], references: [id])
-  updatedBy   User?     @relation("VariantOptionUpdatedBy", fields: [updatedById], references: [id])
-  createdById Int?
-  updatedById Int?
-
-  // Many-to-many relations
-  skus        SKU[]     @relation("SkusVariantOptions")
-}
 
 model SKU {
   id          Int       @id @default(autoincrement())
   value       String
   price       Float
   stock       Int
-  images      String[]
+  image      String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
@@ -399,7 +357,6 @@ model SKU {
   // Related data
   cartItems   CartItem[]
   snapshots   ProductSKUSnapshot[]
-  options     VariantOption[] @relation("SkusVariantOptions")
 }
 
 model Brand {
