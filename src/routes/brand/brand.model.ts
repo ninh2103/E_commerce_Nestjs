@@ -14,7 +14,7 @@ export const BrandSchema = z.object({
 
 export type BrandType = z.infer<typeof BrandSchema>
 
-const BrandIncludeTranslationSchema = BrandSchema.extend({
+export const BrandIncludeTranslationSchema = BrandSchema.extend({
   translations: z.array(BrandTranslationSchema),
 })
 
