@@ -37,20 +37,23 @@ export type VariantType = z.infer<typeof variantSchema>
 export const VariantsSchema = z.array(variantSchema).superRefine((variants, ctx) => {
   for (let i = 0; i < variants.length; i++) {
     const variant = variants[i]
-    const isDifferent = variants.some((v, index) => index !== i && v.value === variant.value)
-    if (isDifferent) {
+    const isExist = variants.findIndex((v) => v.value.toLowerCase() === variant.value.toLowerCase()) !== i
+    if (isExist) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Variants đã tồn tại',
-        path: ['variants', i, 'value'],
+        path: ['variants', i],
       })
     }
-    const isDifferentOptions = variants.some((v, index) => index !== i && v.options.length !== variant.options.length)
+    const isDifferentOptions = variant.options.some((o, i) => {
+      const isExist = variant.options.findIndex((v2) => v2.toLowerCase() === o.toLowerCase()) !== i
+      return isExist
+    })
     if (isDifferentOptions) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Variants đã tồn tại',
-        path: ['variants', i, 'options'],
+        path: ['variants'],
       })
     }
   }
@@ -60,16 +63,16 @@ export const ProductSchema = z.object({
   id: z.number(),
   name: z.string(),
   publishAt: z.coerce.date().nullable(),
-  basePrice: z.number(),
-  virtualPrice: z.number(),
+  variants: VariantsSchema,
+  basePrice: z.number().min(0),
+  virtualPrice: z.number().min(0),
   brandId: z.number(),
   images: z.array(z.string()),
-  variants: VariantsSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
   deletedAt: z.date().nullable(),
-  createdById: z.number(),
-  updatedById: z.number(),
+  createdById: z.number().nullable(),
+  updatedById: z.number().nullable(),
 })
 
 export type ProductType = z.infer<typeof ProductSchema>
@@ -89,7 +92,7 @@ export type GetProductsQueryType = z.infer<typeof GetProductsQuerySchema>
 export const GetProductsResSchema = z.object({
   data: z.array(
     ProductSchema.extend({
-      ProductTranslations: z.array(ProductTranslationSchema),
+      translations: z.array(ProductTranslationSchema),
     }),
   ),
   totalItems: z.number(),
@@ -107,7 +110,7 @@ export const GetProductParamsSchema = z.object({
 export type GetProductParamsType = z.infer<typeof GetProductParamsSchema>
 
 export const GetProductDetailResSchema = ProductSchema.extend({
-  ProductTranslations: z.array(ProductTranslationSchema),
+  translations: z.array(ProductTranslationSchema),
   skus: z.array(SKUSchema),
   categories: z.array(CategoryIncludeTranslationSchema),
   brand: BrandIncludeTranslationSchema,

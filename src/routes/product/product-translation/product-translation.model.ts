@@ -3,14 +3,14 @@ import { z } from 'zod'
 export const ProductTranslationSchema = z.object({
   id: z.number(),
   productId: z.number(),
-  languageId: z.number(),
+  languageId: z.string(),
   description: z.string(),
   name: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
   deletedAt: z.date().nullable(),
-  createdById: z.number(),
-  updatedById: z.number(),
+  createdById: z.number().nullable(),
+  updatedById: z.number().nullable(),
 })
 
 export type ProductTranslationType = z.infer<typeof ProductTranslationSchema>

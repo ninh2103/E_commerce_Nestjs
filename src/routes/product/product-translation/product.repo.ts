@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { ProductNotFoundException } from 'src/routes/product/product.error'
 import {
   CreateProductBodyType,
   GetProductDetailResType,
@@ -45,11 +44,11 @@ export class ProductRepo {
     ])
 
     return {
+      totalItems,
       data: data.map((product) => ({
         ...product,
         variants: Array.isArray(product.variants) ? product.variants : [product.variants],
       })),
-      totalItems,
       page: query.page,
       limit: query.limit,
       totalPages: Math.ceil(totalItems / query.limit),
@@ -88,7 +87,7 @@ export class ProductRepo {
     })
 
     if (!product) {
-      throw ProductNotFoundException
+      throw new Error('Product not found')
     }
 
     return {

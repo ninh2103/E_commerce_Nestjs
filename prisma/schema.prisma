@@ -13,6 +13,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
 enum OrderStatus {
   PENDING_CONFIRMATION
   PENDING_PICKUP
@@ -262,6 +266,7 @@ model Product {
   translations ProductTranslation[]
   skus         SKU[]
   reviews      Review[]
+  /// [Variants]
   variants     Json
   categories   Category[] @relation("ProductsCategories")
 }
