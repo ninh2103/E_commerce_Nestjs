@@ -16,21 +16,42 @@ import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 export class ProductRepo {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: GetProductsQueryType, languageId: string): Promise<GetProductsResType> {
-    const skip = (query.page - 1) * query.limit
-    const take = query.limit
-
+  async list({
+    limit,
+    page,
+    minPrice,
+    maxPrice,
+    name,
+    categories,
+    brandIds,
+    isPublic,
+    createdById,
+    languageId,
+  }: {
+    limit: number
+    page: number
+    minPrice?: number
+    maxPrice?: number
+    name?: string
+    categories?: number[]
+    brandIds?: number[]
+    isPublic?: boolean
+    createdById?: number
+    languageId: string
+  }): Promise<GetProductsResType> {
+    const skip = (page - 1) * limit
+    const take = limit
+    const where: Prisma.ProductWhereInput = {
+      deletedAt: null,
+      createdById: createdById ? createdById : undefined,
+      publishAt: isPublic ? { lte: new Date(), not: null } : undefined,
+    }
     const [totalItems, data] = await this.prisma.$transaction([
       this.prisma.product.count({
-        where: {
-          deletedAt: null,
-        },
+        where,
       }),
       this.prisma.product.findMany({
-        where: {
-          deletedAt: null,
-        },
-
+        where,
         include: {
           translations: {
             where: languageId === ALL_LANGUAGE ? { deletedAt: null } : { deletedAt: null, languageId },
@@ -50,14 +71,40 @@ export class ProductRepo {
         variants: Array.isArray(product.variants) ? product.variants : [product.variants],
       })),
       totalItems,
-      page: query.page,
-      limit: query.limit,
-      totalPages: Math.ceil(totalItems / query.limit),
+      page,
+      limit,
+      totalPages: Math.ceil(totalItems / limit),
     }
   }
-  async findById(id: number, languageId: string): Promise<GetProductDetailResType> {
+  async findById(productId: number): Promise<ProductType | null> {
     const product = await this.prisma.product.findUnique({
-      where: { id, deletedAt: null },
+      where: { id: productId, deletedAt: null },
+      include: {
+        translations: {
+          where: { deletedAt: null },
+        },
+      },
+    })
+    if (!product) {
+      throw ProductNotFoundException
+    }
+    return {
+      ...product,
+      variants: Array.isArray(product.variants) ? product.variants : [product.variants],
+    }
+  }
+
+  async getDetail({
+    productId,
+    languageId,
+    isPublic,
+  }: {
+    productId: number
+    languageId: string
+    isPublic?: boolean
+  }): Promise<GetProductDetailResType> {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId, deletedAt: null, publishAt: isPublic ? { lte: new Date(), not: null } : undefined },
       include: {
         translations: {
           where: languageId === ALL_LANGUAGE ? { deletedAt: null } : { deletedAt: null, languageId },
@@ -98,14 +145,9 @@ export class ProductRepo {
   }
   async delete(id: number, isHardDelete?: boolean): Promise<ProductType> {
     if (isHardDelete) {
-      const [product] = await Promise.all([
-        this.prisma.product.delete({
-          where: { id },
-        }),
-        this.prisma.sKU.deleteMany({
-          where: { productId: id },
-        }),
-      ])
+      const product = await this.prisma.product.delete({
+        where: { id },
+      })
       return {
         ...product,
         variants: Array.isArray(product.variants) ? product.variants : [product.variants],
@@ -114,6 +156,11 @@ export class ProductRepo {
     const [product] = await Promise.all([
       this.prisma.product.update({
         where: { id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      }),
+
+      this.prisma.productTranslation.updateMany({
+        where: { productId: id, deletedAt: null },
         data: { deletedAt: new Date() },
       }),
       this.prisma.sKU.updateMany({

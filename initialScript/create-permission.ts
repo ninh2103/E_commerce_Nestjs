@@ -3,7 +3,7 @@ import { AppModule } from 'src/app.module'
 import { HTTP_METHOD, ROLE_NAME } from 'src/shared/constants/roleName.constant'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 const prisma = new PrismaService()
-const SELLER_MODULE = ['auth', 'user', 'media', 'manage_product', 'product_translation']
+const SELLER_MODULE = ['auth', 'upload', 'manage-product', 'product-translation', 'profile']
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -83,7 +83,7 @@ async function bootstrap() {
 
   const adminPermissionIds = updatedPermissions.map((item) => ({ id: item.id }))
   const sellerPermissionIds = updatedPermissions
-    .filter((item) => !SELLER_MODULE.includes(item.module))
+    .filter((item) => SELLER_MODULE.includes(item.module))
     .map((item) => ({ id: item.id }))
   await Promise.all([
     updateRole(ROLE_NAME.ADMIN, adminPermissionIds),

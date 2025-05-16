@@ -290,6 +290,8 @@ model ProductTranslation {
   updatedBy   User?    @relation("ProductTranslationUpdatedBy", fields: [updatedById], references: [id])
   createdById Int?
   updatedById Int?
+
+  @@index([productId])
 }
 
 model Category {

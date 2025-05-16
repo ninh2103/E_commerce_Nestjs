@@ -85,9 +85,16 @@ export const GetProductsQuerySchema = z.object({
   categories: z.array(z.coerce.number().int().positive()).optional(),
   minPrice: z.coerce.number().positive().optional(),
   maxPrice: z.coerce.number().positive().optional(),
+  createdById: z.coerce.number().int().positive().optional(),
+})
+export type GetProductsQueryType = z.infer<typeof GetProductsQuerySchema>
+
+export const GetManageProductsQuerySchema = GetProductsQuerySchema.extend({
+  isPublic: z.coerce.boolean().optional(),
+  createdById: z.coerce.number().int().positive(),
 })
 
-export type GetProductsQueryType = z.infer<typeof GetProductsQuerySchema>
+export type GetManageProductsQueryType = z.infer<typeof GetManageProductsQuerySchema>
 
 export const GetProductsResSchema = z.object({
   data: z.array(
