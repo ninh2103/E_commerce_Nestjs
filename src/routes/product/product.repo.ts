@@ -41,11 +41,20 @@ export class ProductRepo {
   }): Promise<GetProductsResType> {
     const skip = (page - 1) * limit
     const take = limit
-    const where: Prisma.ProductWhereInput = {
+    let where: Prisma.ProductWhereInput = {
       deletedAt: null,
       createdById: createdById ? createdById : undefined,
-      publishAt: isPublic ? { lte: new Date(), not: null } : undefined,
     }
+
+    if (isPublic === true) {
+      where.publishAt = { lte: new Date(), not: null }
+    } else if (isPublic === false) {
+      where = {
+        ...where,
+        OR: [{ publishAt: null }, { publishAt: { gt: new Date() } }],
+      }
+    }
+
     const [totalItems, data] = await this.prisma.$transaction([
       this.prisma.product.count({
         where,
@@ -103,6 +112,19 @@ export class ProductRepo {
     languageId: string
     isPublic?: boolean
   }): Promise<GetProductDetailResType> {
+    let where: Prisma.ProductWhereUniqueInput = {
+      id: productId,
+      deletedAt: null,
+    }
+
+    if (isPublic === true) {
+      where.publishAt = { lte: new Date(), not: null }
+    } else if (isPublic === false) {
+      where = {
+        ...where,
+        OR: [{ publishAt: null }, { publishAt: { gt: new Date() } }],
+      }
+    }
     const product = await this.prisma.product.findUnique({
       where: { id: productId, deletedAt: null, publishAt: isPublic ? { lte: new Date(), not: null } : undefined },
       include: {

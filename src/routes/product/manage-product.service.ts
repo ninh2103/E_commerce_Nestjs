@@ -29,7 +29,6 @@ export class ManageProductService {
     }
     return true
   }
-
   async list(props: { query: GetManageProductsQueryType; userIdRequest: number; roleNameRequest: string }) {
     this.validatePrivilege({
       userIdRequest: props.userIdRequest,
@@ -41,13 +40,14 @@ export class ManageProductService {
       limit: props.query.limit,
       languageId: I18nContext.current()?.lang as string,
       createdById: props.query.createdById,
+      isPublic: props.query.isPublic,
     })
     return products
   }
 
-  async getDetail(props: { id: number; userIdRequest: number; roleNameRequest: string }) {
+  async getDetail(props: { productId: number; userIdRequest: number; roleNameRequest: string }) {
     const product = await this.productRepo.getDetail({
-      productId: props.id,
+      productId: props.productId,
       languageId: I18nContext.current()?.lang as string,
     })
     if (!product) {
@@ -55,7 +55,7 @@ export class ManageProductService {
     }
     this.validatePrivilege({
       userIdRequest: props.userIdRequest,
-      createdById: props.id,
+      createdById: product.createdById,
       roleNameRequest: props.roleNameRequest,
     })
     return product

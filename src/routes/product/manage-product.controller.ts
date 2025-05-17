@@ -7,7 +7,6 @@ import {
   UpdateProductBodyDto,
 } from 'src/routes/product/product.dto'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
-import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { AccessTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('manage-product/products')
@@ -15,16 +14,14 @@ export class ManageProductController {
   constructor(private readonly manageProductService: ManageProductService) {}
 
   @Get()
-  @IsPublic()
   async getProducts(@Query() query: GetManageProductQueryDto, @ActiveUser() user: AccessTokenPayload) {
     return this.manageProductService.list({ query, userIdRequest: user.userId, roleNameRequest: user.roleName })
   }
 
   @Get(':productId')
-  @IsPublic()
   async getProduct(@Param() params: GetProductParamsDto, @ActiveUser() user: AccessTokenPayload) {
     return this.manageProductService.getDetail({
-      id: params.productId,
+      productId: params.productId,
       userIdRequest: user.userId,
       roleNameRequest: user.roleName,
     })

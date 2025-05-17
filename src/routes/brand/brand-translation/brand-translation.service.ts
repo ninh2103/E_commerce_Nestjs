@@ -6,13 +6,8 @@ import {
   UpdateBrandTranslationBodyType,
 } from 'src/routes/brand/brand-translation/brand-translation.model'
 import { BrandTranslationRepo } from './brand-translation.repo'
-import {
-  BrandTranslationAlreadyExistsException,
-  BrandTranslationNotFoundException,
-} from 'src/routes/brand/brand-translation/brand-translation.error'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+import { BrandTranslationNotFoundException } from 'src/routes/brand/brand-translation/brand-translation.error'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
-import { BrandNotFoundException } from 'src/routes/brand/brand.erorr'
 
 @Injectable()
 export class BrandTranslationService {

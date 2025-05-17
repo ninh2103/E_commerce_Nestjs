@@ -90,7 +90,12 @@ export const GetProductsQuerySchema = z.object({
 export type GetProductsQueryType = z.infer<typeof GetProductsQuerySchema>
 
 export const GetManageProductsQuerySchema = GetProductsQuerySchema.extend({
-  isPublic: z.coerce.boolean().optional(),
+  isPublic: z.preprocess((val) => {
+    if (val === 'true') return true
+    if (val === 'false') return false
+    if (val === undefined) return undefined
+    return val
+  }, z.boolean().optional()),
   createdById: z.coerce.number().int().positive(),
 })
 
