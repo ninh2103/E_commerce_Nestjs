@@ -13,6 +13,14 @@ export class ProductService {
       limit: props.query.limit,
       languageId: I18nContext.current()?.lang as string,
       isPublic: true,
+      name: props.query.name,
+      brandIds: props.query.brandId,
+      categories: props.query.categories,
+      minPrice: props.query.minPrice,
+      maxPrice: props.query.maxPrice,
+      createdById: props.query.createdById,
+      orderBy: props.query.orderBy,
+      sortBy: props.query.sortBy,
     })
     return products
   }

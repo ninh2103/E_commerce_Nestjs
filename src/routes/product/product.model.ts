@@ -2,6 +2,7 @@ import { BrandIncludeTranslationSchema } from 'src/routes/brand/brand.model'
 import { CategoryIncludeTranslationSchema } from 'src/routes/category/category.model'
 import { ProductTranslationSchema } from 'src/routes/product/product-translation/product-translation.model'
 import { SKUSchema, UpsertSKUSchema } from 'src/routes/product/sku.model'
+import { ProductOrderBy, ProductSortBy } from 'src/shared/constants/orther.constant'
 import { z } from 'zod'
 
 function generateSKUs(variants: Variant[]): SKU[] {
@@ -81,11 +82,23 @@ export const GetProductsQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().default(10),
   name: z.string().optional(),
-  brandId: z.array(z.coerce.number().int().positive()).optional(),
-  categories: z.array(z.coerce.number().int().positive()).optional(),
+  brandId: z.preprocess((value) => {
+    if (typeof value === 'string') {
+      return [Number(value)]
+    }
+    return value
+  }, z.array(z.coerce.number().int().positive()).optional()),
+  categories: z.preprocess((value) => {
+    if (typeof value === 'string') {
+      return [Number(value)]
+    }
+    return value
+  }, z.array(z.coerce.number().int().positive()).optional()),
   minPrice: z.coerce.number().positive().optional(),
   maxPrice: z.coerce.number().positive().optional(),
   createdById: z.coerce.number().int().positive().optional(),
+  orderBy: z.enum([ProductOrderBy.ASC, ProductOrderBy.DESC]).default(ProductOrderBy.DESC),
+  sortBy: z.enum([ProductSortBy.PRICE, ProductSortBy.CREATED_AT, ProductSortBy.SALE]).default(ProductSortBy.CREATED_AT),
 })
 export type GetProductsQueryType = z.infer<typeof GetProductsQuerySchema>
 

@@ -269,6 +269,7 @@ model Product {
   /// [Variants]
   variants     Json
   categories   Category[] @relation("ProductsCategories")
+  orders       Order[] 
 }
 
 model ProductTranslation {
@@ -456,6 +457,9 @@ model Order {
 
   // Related data
   snapshots   ProductSKUSnapshot[]
+  products    Product[]
+
+  @@index([status,deletedAt])
 }
 
 model Review {

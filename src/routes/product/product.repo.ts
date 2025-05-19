@@ -9,7 +9,12 @@ import {
   ProductType,
   UpdateProductBodyType,
 } from 'src/routes/product/product.model'
-import { ALL_LANGUAGE } from 'src/shared/constants/orther.constant'
+import {
+  ALL_LANGUAGE,
+  ProductOrderByType,
+  ProductSortBy,
+  ProductSortByType,
+} from 'src/shared/constants/orther.constant'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 
 @Injectable()
@@ -27,6 +32,8 @@ export class ProductRepo {
     isPublic,
     createdById,
     languageId,
+    orderBy,
+    sortBy,
   }: {
     limit: number
     page: number
@@ -38,6 +45,8 @@ export class ProductRepo {
     isPublic?: boolean
     createdById?: number
     languageId: string
+    orderBy: ProductOrderByType
+    sortBy: ProductSortByType
   }): Promise<GetProductsResType> {
     const skip = (page - 1) * limit
     const take = limit
@@ -54,6 +63,44 @@ export class ProductRepo {
         OR: [{ publishAt: null }, { publishAt: { gt: new Date() } }],
       }
     }
+    if (name) {
+      where.name = {
+        contains: name,
+        mode: 'insensitive',
+      }
+    }
+    if (brandIds && brandIds.length > 0) {
+      where.brandId = {
+        in: brandIds,
+      }
+    }
+    if (categories && categories.length > 0) {
+      where.categories = {
+        some: {
+          id: { in: categories },
+        },
+      }
+    }
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.basePrice = {
+        gte: minPrice,
+        lte: maxPrice,
+      }
+    }
+    let caculateOrderBy: Prisma.ProductOrderByWithRelationInput | Prisma.ProductOrderByWithRelationInput[] = {
+      createdAt: orderBy,
+    }
+    if (sortBy === ProductSortBy.PRICE) {
+      caculateOrderBy = {
+        basePrice: orderBy,
+      }
+    } else if (sortBy === ProductSortBy.SALE) {
+      caculateOrderBy = {
+        orders: {
+          _count: orderBy,
+        },
+      }
+    }
 
     const [totalItems, data] = await this.prisma.$transaction([
       this.prisma.product.count({
@@ -65,10 +112,14 @@ export class ProductRepo {
           translations: {
             where: languageId === ALL_LANGUAGE ? { deletedAt: null } : { deletedAt: null, languageId },
           },
+          orders: {
+            where: {
+              deletedAt: null,
+              status: 'DELIVERED',
+            },
+          },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: caculateOrderBy,
         skip,
         take,
       }),
