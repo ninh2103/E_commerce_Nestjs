@@ -11,7 +11,7 @@ export const SKUSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   deletedAt: z.date().nullable(),
-  createdById: z.number().nullable(),
+  createdById: z.number(),
   updatedById: z.number().nullable(),
 })
 

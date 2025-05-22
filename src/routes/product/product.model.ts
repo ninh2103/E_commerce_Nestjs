@@ -28,14 +28,14 @@ function generateSKUs(variants: Variant[]): SKU[] {
   return skus
 }
 
-export const variantSchema = z.object({
+export const VariantSchema = z.object({
   value: z.string(),
   options: z.array(z.string()),
 })
 
-export type VariantType = z.infer<typeof variantSchema>
+export type VariantType = z.infer<typeof VariantSchema>
 
-export const VariantsSchema = z.array(variantSchema).superRefine((variants, ctx) => {
+export const VariantsSchema = z.array(VariantSchema).superRefine((variants, ctx) => {
   for (let i = 0; i < variants.length; i++) {
     const variant = variants[i]
     const isExist = variants.findIndex((v) => v.value.toLowerCase() === variant.value.toLowerCase()) !== i

@@ -265,7 +265,10 @@ export class ProductRepo {
         },
         skus: {
           createMany: {
-            data: skus,
+            data: skus.map((sku) => ({
+              ...sku,
+              createdById,
+            })),
           },
         },
       },
@@ -370,7 +373,10 @@ export class ProductRepo {
         }),
       ),
       this.prisma.sKU.createMany({
-        data: skusToCreate,
+        data: skusToCreate.map((sku) => ({
+          ...sku,
+          createdById: updatedById,
+        })),
       }),
     ])
 

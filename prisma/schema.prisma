@@ -257,9 +257,9 @@ model Product {
   // Relations
   brand        Brand     @relation(fields: [brandId], references: [id])
   brandId      Int
-  createdBy    User?     @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  createdBy    User     @relation("ProductCreatedBy", fields: [createdById], references: [id] , onDelete: Cascade)
   updatedBy    User?     @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
-  createdById  Int?
+  createdById  Int
   updatedById  Int?
 
   // Related data
@@ -353,13 +353,14 @@ model SKU {
   deletedAt   DateTime?
 
   @@index([deletedAt])
+  @@index([productId])
 
   // Relations
   product     Product   @relation(fields: [productId], references: [id])
   productId   Int
-  createdBy   User?     @relation("SKUCreatedBy", fields: [createdById], references: [id])
+  createdBy   User     @relation("SKUCreatedBy", fields: [createdById], references: [id] , onDelete: Cascade)
   updatedBy   User?     @relation("SKUUpdatedBy", fields: [updatedById], references: [id])
-  createdById Int?
+  createdById Int
   updatedById Int?
 
   // Related data
@@ -417,10 +418,12 @@ model CartItem {
   updatedAt DateTime @updatedAt
 
   // Relations
-  sku       SKU      @relation(fields: [skuId], references: [id])
+  sku       SKU      @relation(fields: [skuId], references: [id], onDelete: Cascade)
   skuId     Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
+
+  @@index([userId])
 }
 
 model ProductSKUSnapshot {

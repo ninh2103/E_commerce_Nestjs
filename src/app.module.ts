@@ -20,6 +20,7 @@ import { CategoryModule } from 'src/routes/category/category.module'
 import { CategoryTranslationModule } from 'src/routes/category/category-translation/category-translation.module'
 import { ProductModule } from 'src/routes/product/product.module'
 import { ProductTranslationModule } from 'src/routes/product/product-translation/product-translation.module'
+import { CartModule } from 'src/routes/cart/cart.module'
 @Module({
   imports: [
     SharedModule,
@@ -35,6 +36,7 @@ import { ProductTranslationModule } from 'src/routes/product/product-translation
     CategoryTranslationModule,
     ProductModule,
     ProductTranslationModule,
+    CartModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
