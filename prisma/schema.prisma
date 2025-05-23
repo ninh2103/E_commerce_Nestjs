@@ -18,7 +18,7 @@ generator json {
 }
 
 enum OrderStatus {
-  PENDING_CONFIRMATION
+  PENDING_PAYMENT
   PENDING_PICKUP
   PENDING_DELIVERY
   DELIVERED
@@ -132,6 +132,7 @@ model User {
   updatedBrandTranslations   BrandTranslation[]    @relation("BrandTranslationUpdatedBy")
   createdOrders              Order[]               @relation("OrderCreatedBy")
   updatedOrders              Order[]               @relation("OrderUpdatedBy")
+  soldOrders                Order[]               @relation("Shop")
 }
 
 model UserTranslation {
@@ -270,6 +271,7 @@ model Product {
   variants     Json
   categories   Category[] @relation("ProductsCategories")
   orders       Order[] 
+  productSKUSnapshots    ProductSKUSnapshot[]
 }
 
 model ProductTranslation {
@@ -339,8 +341,6 @@ model CategoryTranslation {
   createdById Int?
   updatedById Int?
 }
-
-
 
 model SKU {
   id          Int       @id @default(autoincrement())
@@ -424,12 +424,13 @@ model CartItem {
   userId    Int
 
   @@index([userId])
+  @@unique([userId, skuId])
 }
 
 model ProductSKUSnapshot {
   id          Int      @id @default(autoincrement())
   productName String
-  price       Float
+  skuPrice       Float
   images      String[]
   skuValue    String
   createdAt   DateTime @default(now())
@@ -439,6 +440,12 @@ model ProductSKUSnapshot {
   skuId       Int
   order       Order    @relation(fields: [orderId], references: [id])
   orderId     Int
+  quantity    Int
+  productId   Int?
+  product     Product?  @relation(fields: [productId], references: [id] , onDelete: SetNull,onUpdate: NoAction)
+
+  ///[ProductTranslation]
+  productTranslation Json
 }
 
 model Order {
@@ -447,6 +454,12 @@ model Order {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   deletedAt   DateTime?
+
+  ///[Receiver]
+  receiver    Json
+  shopId      Int?
+  shop        User?      @relation("Shop", fields: [shopId], references: [id] , onDelete: SetNull,onUpdate: NoAction)
+ 
 
   @@index([deletedAt])
 

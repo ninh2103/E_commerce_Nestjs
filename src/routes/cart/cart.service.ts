@@ -14,7 +14,7 @@ export class CartService {
   constructor(private readonly cartRepo: CartRepo) {}
 
   async getCart(userId: number, query: PaginationType) {
-    return await this.cartRepo.findAll({
+    return await this.cartRepo.list2({
       userId,
       languageId: I18nContext.current()?.lang as string,
       page: query.page,
