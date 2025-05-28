@@ -431,7 +431,7 @@ model ProductSKUSnapshot {
   id          Int      @id @default(autoincrement())
   productName String
   skuPrice       Float
-  images      String[]
+  image      String
   skuValue    String
   createdAt   DateTime @default(now())
 
