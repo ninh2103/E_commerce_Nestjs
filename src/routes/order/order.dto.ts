@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod'
 import {
+  CancelOrderBodySchema,
   CancelOrderResSchema,
   CreateOrderBodySchema,
   CreateOrderResSchema,
@@ -20,5 +21,7 @@ export class CreateOrderResDto extends createZodDto(CreateOrderResSchema) {}
 export class CancelOrderResDto extends createZodDto(CancelOrderResSchema) {}
 
 export class GetOrderParamsDto extends createZodDto(GetOrderParamsSchema) {}
+
+export class CancelOrderBodyDto extends createZodDto(CancelOrderBodySchema) {}
 
 export class GetOrderListQueryDto extends createZodDto(GetOrderListQuerySchema) {}

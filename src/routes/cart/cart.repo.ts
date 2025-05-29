@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { NotFoundSKUException, SKUQuantityNotEnoughException } from 'src/routes/cart/cart.error'
+import {
+  CartItemAlreadyExistsException,
+  InvalidCartItemException,
+  InvalidQuantityException,
+  NotFoundSKUException,
+  SKUQuantityNotEnoughException,
+} from 'src/routes/cart/cart.error'
 import {
   AddToCartBodyType,
   CartItemType,
@@ -9,6 +15,7 @@ import {
   GetCartResType,
   UpdateCartItemBodyType,
 } from 'src/routes/cart/cart.model'
+import { NotFoundCartItemException } from 'src/routes/order/order.error'
 import { ProductNotFoundException } from 'src/routes/product/product.error'
 import { ALL_LANGUAGE } from 'src/shared/constants/orther.constant'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
@@ -17,19 +24,51 @@ import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 export class CartRepo {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async validateSKU(skuId: number, quantity: number) {
-    const sku = await this.prisma.sKU.findUnique({
-      where: {
-        id: skuId,
-        deletedAt: null,
-      },
-      include: {
-        product: true,
-      },
-    })
+  private async validateSKU({
+    skuId,
+    quantity,
+    userId,
+    isCreate,
+  }: {
+    skuId: number
+    quantity: number
+    userId: number
+    isCreate: boolean
+  }) {
+    const [sku, cartItem] = await Promise.all([
+      this.prisma.sKU.findUnique({
+        where: {
+          id: skuId,
+          deletedAt: null,
+        },
+        include: {
+          product: true,
+        },
+      }),
+      isCreate
+        ? null
+        : this.prisma.cartItem.findUnique({
+            where: {
+              userId_skuId: {
+                userId,
+                skuId,
+              },
+            },
+          }),
+    ])
+
     if (!sku) {
       throw NotFoundSKUException
     }
+
+    if (!cartItem) {
+      throw NotFoundCartItemException
+    }
+
+    if (isCreate && cartItem.quantity + quantity > sku.stock) {
+      throw InvalidQuantityException
+    }
+
     if (sku.stock < 1 || sku.stock < quantity) {
       throw SKUQuantityNotEnoughException
     }
@@ -245,7 +284,12 @@ export class CartRepo {
   }
 
   async addToCart({ userId, body }: { userId: number; body: AddToCartBodyType }): Promise<CartItemType> {
-    await this.validateSKU(body.skuId, body.quantity)
+    await this.validateSKU({
+      skuId: body.skuId,
+      quantity: body.quantity,
+      userId,
+      isCreate: true,
+    })
     return await this.prisma.cartItem.upsert({
       where: {
         userId_skuId: {
@@ -269,11 +313,18 @@ export class CartRepo {
   async updateCartItem({
     body,
     cartItemId,
+    userId,
   }: {
     body: UpdateCartItemBodyType
     cartItemId: number
+    userId: number
   }): Promise<CartItemType> {
-    await this.validateSKU(body.skuId, body.quantity)
+    await this.validateSKU({
+      skuId: body.skuId,
+      quantity: body.quantity,
+      userId,
+      isCreate: false,
+    })
     return await this.prisma.cartItem.update({
       where: { id: cartItemId },
       data: { quantity: body.quantity, skuId: body.skuId },

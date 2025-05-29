@@ -19,8 +19,12 @@ export class CartController {
   }
 
   @Put(':cartItemId')
-  async updateCartItem(@Param() params: GetCartItemParamsDto, @Body() body: UpdateCartItemDto) {
-    return await this.cartService.updateCartItem(params.cartItemId, body)
+  async updateCartItem(
+    @Param() params: GetCartItemParamsDto,
+    @ActiveUser('userId') userId: number,
+    @Body() body: UpdateCartItemDto,
+  ) {
+    return await this.cartService.updateCartItem(userId, params.cartItemId, body)
   }
 
   @Post('delete')

@@ -5,8 +5,7 @@ declare global {
     type Variants = VariantType
     type Receiver = {
       name: string
-      phoneNumber: string
-      email: string
+      phone: string
       address: string
     }
     type ProductTranslation = {

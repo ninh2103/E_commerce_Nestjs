@@ -81,7 +81,7 @@ export const GetOrderListQuerySchema = PaginationSchema.extend({
 export type GetOrderListQueryType = z.infer<typeof GetOrderListQuerySchema>
 
 export const GetOrderDetailResSchema = OrderSchema.extend({
-  items: z.array(ProductSkuSnapshotSchema),
+  snapshots: z.array(ProductSkuSnapshotSchema),
 })
 
 export type GetOrderDetailResType = z.infer<typeof GetOrderDetailResSchema>
@@ -115,3 +115,7 @@ export const GetOrderParamsSchema = z.object({
 })
 
 export type GetOrderParamsType = z.infer<typeof GetOrderParamsSchema>
+
+export const CancelOrderBodySchema = z.object({})
+
+export type CancelOrderBodyType = z.infer<typeof CancelOrderBodySchema>

@@ -21,3 +21,15 @@ export const NotFoundSKUException = new UnprocessableEntityException([{ message:
 export const SKUQuantityNotEnoughException = new UnprocessableEntityException([
   { message: 'Error.SKUQuantityNotEnough', path: 'skuId' },
 ])
+
+export const InvalidCartItemException = new UnprocessableEntityException([
+  { message: 'Error.InvalidCartItem', path: 'cartItemId' },
+])
+
+export const NotFoundCartItemException = new UnprocessableEntityException([
+  { message: 'Error.NotFoundCartItem', path: 'cartItemId' },
+])
+
+export const InvalidQuantityException = new UnprocessableEntityException([
+  { message: 'Error.InvalidQuantity', path: 'quantity' },
+])
