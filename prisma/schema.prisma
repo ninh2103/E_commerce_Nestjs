@@ -49,6 +49,12 @@ enum HTTPMethod {
   HEAD
 }
 
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 model Language {
   id          String       @unique
   name        String
@@ -438,7 +444,7 @@ model ProductSKUSnapshot {
   // Relations
   sku         SKU      @relation(fields: [skuId], references: [id])
   skuId       Int
-  order       Order    @relation(fields: [orderId], references: [id])
+  order       Order    @relation(fields: [orderId], references: [id] , onDelete: Cascade)
   orderId     Int
   quantity    Int
   productId   Int?
@@ -470,12 +476,22 @@ model Order {
   updatedBy   User?       @relation("OrderUpdatedBy", fields: [updatedById], references: [id])
   createdById Int?
   updatedById Int?
+  paymentId   Int
+  payment     Payment     @relation( fields: [paymentId], references: [id] , onDelete: NoAction,onUpdate: NoAction)
 
   // Related data
   snapshots   ProductSKUSnapshot[]
   products    Product[]
 
   @@index([status,deletedAt])
+}
+
+model Payment{
+  id Int @id @default(autoincrement())
+  status PaymentStatus
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order Order[] 
 }
 
 model Review {
@@ -499,7 +515,7 @@ model PaymentTransaction {
   id                Int      @id @default(autoincrement())
   gateway           String
   transactionDate   DateTime @default(now())
-  accountNumber     String
+  accountNumber     String?
   subAccount        String?
   amountIn          Int      @default(0)
   amountOut         Int      @default(0)

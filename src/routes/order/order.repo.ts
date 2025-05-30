@@ -5,7 +5,7 @@ import {
   CreateOrderResType,
   GetOrderListQueryType,
 } from 'src/routes/order/order.model'
-import { Prisma } from '@prisma/client'
+import { PaymentStatus, Prisma } from '@prisma/client'
 import { GetOrderListResType } from 'src/routes/order/order.model'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
 import {
@@ -59,7 +59,13 @@ export class OrderRepo {
     }
   }
 
-  async create(userId: number, body: CreateOrderBodyType): Promise<CreateOrderResType> {
+  async create(
+    userId: number,
+    body: CreateOrderBodyType,
+  ): Promise<{
+    paymentId: number
+    orders: GetOrderListResType['data']
+  }> {
     //1kiểm tra xem tất cả cart item có tồn tại trong db không
     const allBodyCartItemIds = body.map((item) => item.cartItemsIds).flat()
 
@@ -121,16 +127,22 @@ export class OrderRepo {
     }
 
     //5. tạo order và xóa cart item trong transaction để đảm bảo tính toàn vẹn dữ liệu
-    const order = await this.prisma.$transaction(async (tx) => {
-      const orders = await Promise.all(
+    const [orders, paymentId] = await this.prisma.$transaction(async (tx) => {
+      const payment = await tx.payment.create({
+        data: {
+          status: PaymentStatus.PENDING,
+        },
+      })
+      const orders$ = Promise.all(
         body.map(async (item) => {
-          const createdOrder = await tx.order.create({
+          return tx.order.create({
             data: {
               userId,
               status: OrderStatus.PENDING_PAYMENT,
               receiver: item.receiver,
               createdById: item.shopId,
               shopId: item.shopId,
+              paymentId: payment.id,
               snapshots: {
                 create: item.cartItemsIds.map((id) => {
                   const cartItem = cartItemMap.get(id)!
@@ -157,25 +169,42 @@ export class OrderRepo {
                 }),
               },
             },
-          })
-
-          await tx.cartItem.deleteMany({
-            where: {
-              id: {
-                in: allBodyCartItemIds,
-              },
+            include: {
+              snapshots: true,
             },
           })
-
-          return createdOrder
         }),
       )
+      const cartItem$ = tx.cartItem.deleteMany({
+        where: {
+          id: {
+            in: allBodyCartItemIds,
+          },
+        },
+      })
 
-      return {
-        data: orders,
-      }
+      const sku$ = Promise.all(
+        cartItems.map((item) =>
+          tx.sKU.update({
+            where: {
+              id: item.skuId,
+            },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          }),
+        ),
+      )
+      const [orders] = await Promise.all([orders$, cartItem$, sku$])
+      return [orders, payment.id]
     })
-    return order
+
+    return {
+      paymentId,
+      orders,
+    }
   }
 
   async detail(userId: number, orderId: number): Promise<any> {

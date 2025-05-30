@@ -14,3 +14,5 @@ export const ProductSortBy = {
 } as const
 
 export type ProductSortByType = (typeof ProductSortBy)[keyof typeof ProductSortBy]
+
+export const PAYMENT_PREFIX = 'DH'

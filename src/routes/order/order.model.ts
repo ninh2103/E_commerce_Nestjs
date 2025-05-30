@@ -23,6 +23,7 @@ const OrderSchema = z.object({
     address: z.string(),
   }),
   shopId: z.number().nullable(),
+  paymentId: z.number(),
   createdById: z.number().nullable(),
   updatedById: z.number().nullable(),
   createdAt: z.date(),
@@ -36,21 +37,14 @@ export const ProductSkuSnapshotSchema = z.object({
   id: z.number(),
   productId: z.number().nullable(),
   productName: z.string(),
-  productTranslations: z.array(
-    z.object({
-      id: z.number(),
-      languageId: z.string(),
-      name: z.string(),
-      description: z.string(),
-    }),
-  ),
+  productTranslation: z.any(),
   skuPrice: z.number(),
   image: z.string(),
   skuValue: z.string(),
   quantity: z.number(),
-  skuId: z.number().nullable(),
-  orderId: z.number().nullable(),
-  createdAt: z.date().nullable(),
+  skuId: z.number(),
+  orderId: z.number(),
+  createdAt: z.date(),
 })
 
 export type ProductSkuSnapshotType = z.infer<typeof ProductSkuSnapshotSchema>
@@ -119,3 +113,9 @@ export type GetOrderParamsType = z.infer<typeof GetOrderParamsSchema>
 export const CancelOrderBodySchema = z.object({})
 
 export type CancelOrderBodyType = z.infer<typeof CancelOrderBodySchema>
+
+export const OrderIncludeProductSkuSnapshotSchema = OrderSchema.extend({
+  snapshots: z.array(ProductSkuSnapshotSchema),
+})
+
+export type OrderIncludeProductSkuSnapshotType = z.infer<typeof OrderIncludeProductSkuSnapshotSchema>

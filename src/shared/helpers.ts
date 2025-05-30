@@ -40,3 +40,7 @@ export function generateRandomFileName(fileName: string): string {
 }
 
 export const uploadDir = path.resolve('uploads')
+
+export const genarateCanclePaymentJobId = (paymentId: number) => {
+  return `${paymentId}}`
+}
