@@ -3,11 +3,15 @@ import { AppModule } from './app.module'
 import { BadRequestException, ValidationPipe } from '@nestjs/common'
 import { TransformInterceptor } from 'src/shared/interceptors/transform.interceptor'
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log', 'debug', 'verbose'] })
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
   })
-  await app.listen(process.env.PORT ?? 3000)
+  await app.listen(process.env.PORT ?? 4000)
   app.useGlobalInterceptors(new TransformInterceptor())
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
