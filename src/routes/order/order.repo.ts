@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import {
-  CancelOrderResType,
-  CreateOrderBodyType,
-  CreateOrderResType,
-  GetOrderListQueryType,
-} from 'src/routes/order/order.model'
+import { CancelOrderResType, CreateOrderBodyType, GetOrderListQueryType } from 'src/routes/order/order.model'
 import { PaymentStatus, Prisma } from '@prisma/client'
 import { GetOrderListResType } from 'src/routes/order/order.model'
 import { PrismaService } from 'src/shared/sharedServices/prisma.service'
@@ -18,10 +13,14 @@ import {
 import { ProductNotFoundException } from 'src/routes/product/product.error'
 import { OrderStatus } from 'src/shared/constants/order.constant'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
+import { OrderProducer } from 'src/routes/order/order.producer'
 
 @Injectable()
 export class OrderRepo {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly orderProducer: OrderProducer,
+  ) {}
 
   async list(userId: number, query: GetOrderListQueryType): Promise<any> {
     const { page, limit, status } = query
@@ -197,7 +196,8 @@ export class OrderRepo {
           }),
         ),
       )
-      const [orders] = await Promise.all([orders$, cartItem$, sku$])
+      const cancelPayment$ = this.orderProducer.cancelPayment(payment.id)
+      const [orders] = await Promise.all([orders$, cartItem$, sku$, cancelPayment$])
       return [orders, payment.id]
     })
 

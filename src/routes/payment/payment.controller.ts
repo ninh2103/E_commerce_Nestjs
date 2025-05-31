@@ -10,9 +10,6 @@ export class PaymentController {
   @Post('receive')
   @Auth(['PaymentApiKey'])
   receivePayment(@Body() body: WebhookPaymentDto) {
-    // return this.paymentService.receivePayment(body)
-    return {
-      message: 'Payment received successfully',
-    }
+    return this.paymentService.receivePayment(body)
   }
 }
