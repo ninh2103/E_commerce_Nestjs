@@ -9,8 +9,8 @@ export class EmailService {
   }
   sendEmail(payload: { email: string; code: string }) {
     return this.resend.emails.send({
-      from: 'onboarding@resend.dev',
-      to: payload.email,
+      from: 'DuckMall <no-reply@duckmall.id.vn>',
+      to: [payload.email],
       subject: 'OTP Code',
       text: `Your OTP code is ${payload.code}`,
     })
