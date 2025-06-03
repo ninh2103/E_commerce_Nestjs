@@ -26,6 +26,7 @@ import { PaymentModule } from 'src/routes/payment/payment.module'
 import { BullModule } from '@nestjs/bullmq'
 import { PaymentConsumer } from 'src/queue/payment-cosumer'
 import envConfig from 'src/shared/config'
+import { RoleModule } from 'src/routes/role/role.module'
 @Module({
   imports: [
     SharedModule,
@@ -42,6 +43,7 @@ import envConfig from 'src/shared/config'
     ProductModule,
     ProductTranslationModule,
     CartModule,
+    RoleModule,
     OrderModule,
     PaymentModule,
     I18nModule.forRoot({
