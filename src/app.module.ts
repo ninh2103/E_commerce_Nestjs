@@ -27,6 +27,8 @@ import { BullModule } from '@nestjs/bullmq'
 import { PaymentConsumer } from 'src/queue/payment-cosumer'
 import envConfig from 'src/shared/config'
 import { RoleModule } from 'src/routes/role/role.module'
+import { HealthModule } from './routes/health/health.module'
+
 @Module({
   imports: [
     SharedModule,
@@ -46,6 +48,7 @@ import { RoleModule } from 'src/routes/role/role.module'
     RoleModule,
     OrderModule,
     PaymentModule,
+    HealthModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {

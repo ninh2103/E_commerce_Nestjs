@@ -61,11 +61,7 @@ export class UserController {
     })
   }
   @Delete(':userId')
-  async delete(
-    @Param() params: GetUserParamsDto,
-    @ActiveUser('userId') userId: number,
-    @ActiveRolePermission('name') roleName: string,
-  ) {
+  async delete(@Param() params: GetUserParamsDto, @ActiveRolePermission('name') roleName: string) {
     return this.userService.delete({
       id: params.userId,
       deletedByRoleName: roleName,
