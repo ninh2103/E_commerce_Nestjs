@@ -28,6 +28,7 @@ import { PaymentConsumer } from 'src/queue/payment-cosumer'
 import envConfig from 'src/shared/config'
 import { RoleModule } from 'src/routes/role/role.module'
 import { HealthModule } from './routes/health/health.module'
+import { WebSocketModule } from 'src/webSocket/webSocket.module'
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { HealthModule } from './routes/health/health.module'
         url: envConfig.REDIS_URL,
       },
     }),
+    WebSocketModule,
   ],
   controllers: [AppController],
   providers: [
