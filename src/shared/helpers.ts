@@ -44,3 +44,7 @@ export const uploadDir = path.resolve('uploads')
 export const genarateCanclePaymentJobId = (paymentId: number) => {
   return `${paymentId}}`
 }
+
+export const genarateRoomUserId = (userId: number) => {
+  return `userId ${userId}`
+}

@@ -10,7 +10,9 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   })
-  app.useWebSocketAdapter(new WebSocketAdaptor(app))
+  const redisIoAdapter = new WebSocketAdaptor(app)
+  await redisIoAdapter.connectToRedis()
+  app.useWebSocketAdapter(redisIoAdapter)
   await app.listen(process.env.PORT ?? 4000)
   app.useGlobalInterceptors(new TransformInterceptor())
 

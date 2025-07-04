@@ -15,16 +15,18 @@ export class PaymentRepo {
     private prisma: PrismaService,
     private readonly paymentProducer: PaymentProducer,
   ) {}
-  async getTotalPrice(orders: OrderIncludeProductSkuSnapshotType[]): Promise<number> {
-    return orders.reduce((total, order) => {
-      const orderTotal = order.snapshots.reduce((total, snapshot) => {
-        return total + snapshot.skuPrice * snapshot.quantity
+  getTotalPrice(orders: OrderIncludeProductSkuSnapshotType[]): Promise<number> {
+    const total = orders.reduce((total, order) => {
+      const orderTotal = (order.snapshots || []).reduce((subTotal, snapshot) => {
+        return subTotal + snapshot.skuPrice * snapshot.quantity
       }, 0)
       return total + orderTotal
     }, 0)
+
+    return Promise.resolve(total)
   }
 
-  async receivePayment(body: WebhookPaymentBodyType): Promise<MessageResponseType> {
+  async receivePayment(body: WebhookPaymentBodyType): Promise<number> {
     let amountIn = 0
     let amountOut = 0
     if (body.transferType === 'in') {
@@ -41,7 +43,7 @@ export class PaymentRepo {
     if (paymentTransaction) {
       throw new BadRequestException('Payment transaction already exists')
     }
-    await this.prisma.$transaction(async (tx) => {
+    const userId = await this.prisma.$transaction(async (tx) => {
       await tx.paymentTransaction.create({
         data: {
           id: body.id,
@@ -80,6 +82,8 @@ export class PaymentRepo {
       if (!payment) {
         throw new BadRequestException('Payment not found')
       }
+
+      const usserId = payment.order[0].userId
       const { order } = payment
       const totalPrice = await this.getTotalPrice(order)
       if (totalPrice !== body.transferAmount) {
@@ -96,9 +100,8 @@ export class PaymentRepo {
         }),
         this.paymentProducer.removeJob(paymentId),
       ])
+      return usserId
     })
-    return {
-      message: 'Payment received successfully',
-    }
+    return userId
   }
 }
