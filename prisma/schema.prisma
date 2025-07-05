@@ -57,7 +57,7 @@ enum PaymentStatus {
 
 enum MediaType {
 IMAGE
-AUDIO
+VIDEO
 }
 
 model Language {
@@ -519,6 +519,7 @@ model Review {
   user        User     @relation(fields: [userId], references: [id])
   userId      Int
   medias      ReviewMedia[]
+  updateCount Int @default(0)
 
   @@unique([orderId, productId])
   @@index([userId])

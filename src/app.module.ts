@@ -31,6 +31,7 @@ import { HealthModule } from './routes/health/health.module'
 import { WebSocketModule } from 'src/webSocket/webSocket.module'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { ThrottlerBehindProxyGuard } from 'src/shared/guards/throttler-behind-proxy.guard'
+import { ReviewModule } from 'src/routes/review/review.module'
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ThrottlerBehindProxyGuard } from 'src/shared/guards/throttler-behind-pr
     OrderModule,
     PaymentModule,
     HealthModule,
+    ReviewModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
