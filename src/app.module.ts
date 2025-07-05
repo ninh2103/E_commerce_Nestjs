@@ -3,7 +3,7 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { SharedModule } from 'src/shared/shared.module'
 import { AuthModule } from './routes/auth/auth.module'
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import CustomZodValidationPipe from 'src/shared/pipes/customZodValidation.pipe'
 import { ZodSerializationException } from 'nestjs-zod'
 import { HttpExceptionFilter } from 'src/shared/fillters/http-exception.fillter'
@@ -29,6 +29,8 @@ import envConfig from 'src/shared/config'
 import { RoleModule } from 'src/routes/role/role.module'
 import { HealthModule } from './routes/health/health.module'
 import { WebSocketModule } from 'src/webSocket/webSocket.module'
+import { ThrottlerModule } from '@nestjs/throttler'
+import { ThrottlerBehindProxyGuard } from 'src/shared/guards/throttler-behind-proxy.guard'
 
 @Module({
   imports: [
@@ -69,6 +71,14 @@ import { WebSocketModule } from 'src/webSocket/webSocket.module'
       },
     }),
     WebSocketModule,
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000, //1phut
+          limit: 10, //10 request
+        },
+      ],
+    }),
   ],
   controllers: [AppController],
   providers: [
@@ -85,6 +95,12 @@ import { WebSocketModule } from 'src/webSocket/webSocket.module'
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
+
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerBehindProxyGuard,
+    },
+
     PaymentConsumer,
   ],
 })

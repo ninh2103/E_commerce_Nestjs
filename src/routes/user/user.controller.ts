@@ -12,8 +12,10 @@ import { ZodSerializerDto } from 'nestjs-zod'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { ActiveRolePermission } from 'src/shared/decorators/active-role-permission.decorator'
 import { GetUserProfileDto } from 'src/routes/profile/profile.dto'
+import { ApiBearerAuth } from '@nestjs/swagger'
 
 @Controller('user')
+@ApiBearerAuth()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
