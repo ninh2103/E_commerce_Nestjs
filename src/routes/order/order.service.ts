@@ -19,4 +19,7 @@ export class OrderService {
   async cancel(userId: number, orderId: number) {
     return this.orderRepo.cancel(userId, orderId)
   }
+  async changeStatusOrder({ userId, orderId, roleName }: { userId: number; orderId: number; roleName: string }) {
+    return this.orderRepo.changeStatusOrder({ orderId, roleName, userId })
+  }
 }

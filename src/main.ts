@@ -6,11 +6,13 @@ import { WebSocketAdaptor } from 'src/webSocket/webSocket.adapter'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import { patchNestJsSwagger } from 'nestjs-zod'
 import { NestExpressApplication } from '@nestjs/platform-express'
+import helmet from 'helmet'
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   })
   app.set('trust proxy', 'loopback')
+  app.use(helmet())
   app.enableCors({
     origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',

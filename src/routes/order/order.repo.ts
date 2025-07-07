@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { ForbiddenException, Injectable } from '@nestjs/common'
 import { CancelOrderResType, CreateOrderBodyType, GetOrderListQueryType } from 'src/routes/order/order.model'
 import { PaymentStatus, Prisma } from '@prisma/client'
 import { GetOrderListResType } from 'src/routes/order/order.model'
@@ -14,6 +14,8 @@ import { ProductNotFoundException } from 'src/routes/product/product.error'
 import { OrderStatus } from 'src/shared/constants/order.constant'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
 import { OrderProducer } from 'src/routes/order/order.producer'
+import { RoleType } from 'src/shared/models/share-role.model'
+import { ROLE_NAME } from 'src/shared/constants/roleName.constant'
 
 @Injectable()
 export class OrderRepo {
@@ -256,5 +258,60 @@ export class OrderRepo {
       }
       throw error
     }
+  }
+  async changeStatusOrder({
+    userId,
+    orderId,
+    roleName,
+  }: {
+    userId: number
+    orderId: number
+    roleName: string
+  }): Promise<any> {
+    // 1. kiểm tra xem có phải là role seller không
+    if (roleName !== ROLE_NAME.SELLER) {
+      throw new ForbiddenException('Only sellers can change order status')
+    }
+    // 2. Lấy thông tin đơn hàng và sản phẩm kèm SKU
+    const order = await this.prisma.order.findUnique({
+      where: {
+        id: orderId,
+        deletedAt: null,
+      },
+      include: {
+        snapshots: true,
+      },
+    })
+
+    if (!order) {
+      throw OrderNotFoundException
+    }
+
+    // 2. Giảm tồn kho SKU
+    const updateStockPromises = order.snapshots.map((snapshot) =>
+      this.prisma.sKU.update({
+        where: { id: snapshot.skuId },
+        data: {
+          stock: {
+            decrement: snapshot.quantity,
+          },
+        },
+      }),
+    )
+
+    await Promise.all(updateStockPromises)
+
+    // 3. Cập nhật trạng thái đơn hàng
+    const updatedOrder = await this.prisma.order.update({
+      where: {
+        id: orderId,
+      },
+      data: {
+        status: OrderStatus.DELIVERED,
+        updatedById: userId,
+      },
+    })
+
+    return updatedOrder
   }
 }

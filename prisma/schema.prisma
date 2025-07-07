@@ -179,7 +179,7 @@ model VerificationCode {
   // Relations
   
 
-  @@unique([email, code, type])
+  @@unique([email, type])
   @@index([expiresAt])
 }
 

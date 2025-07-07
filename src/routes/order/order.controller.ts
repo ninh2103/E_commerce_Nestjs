@@ -7,6 +7,7 @@ import {
   GetOrderListQueryDto,
   GetOrderParamsDto,
 } from 'src/routes/order/order.dto'
+import { AccessTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('orders')
 export class OrderController {
@@ -31,5 +32,14 @@ export class OrderController {
     @ActiveUser('userId') userId: number,
   ) {
     return this.orderService.cancel(userId, params.orderId)
+  }
+  @Put('/changestatus/:orderId')
+  async changeStatus(
+    @Param() params: GetOrderParamsDto,
+    @Body() _: CancelOrderBodyDto,
+    @ActiveUser('userId') userId: number,
+    @ActiveUser() user: AccessTokenPayload,
+  ) {
+    return this.orderService.changeStatusOrder({ orderId: params.orderId, userId: userId, roleName: user.roleName })
   }
 }

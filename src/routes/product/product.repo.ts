@@ -4,7 +4,6 @@ import { ProductNotFoundException } from 'src/routes/product/product.error'
 import {
   CreateProductBodyType,
   GetProductDetailResType,
-  GetProductsQueryType,
   GetProductsResType,
   ProductType,
   UpdateProductBodyType,
